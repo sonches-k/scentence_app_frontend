@@ -19,7 +19,7 @@ struct PerfumeDetailView: View {
         }
         .navigationBarTitleDisplayMode(.inline)
         .glassNavBar()
-        .tint(AppColor.gold)
+        .tint(AppColor.accent)
         .toolbar {
             if let perfume = viewModel.perfume, authState.isAuthenticated {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -28,7 +28,7 @@ struct PerfumeDetailView: View {
                         Task { await viewModel.toggleFavorite(perfumeId: perfume.id, token: token) }
                     } label: {
                         Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
-                            .foregroundColor(viewModel.isFavorite ? AppColor.gold : AppColor.textSecondary)
+                            .foregroundColor(viewModel.isFavorite ? AppColor.accent : AppColor.textSecondary)
                     }
                     .disabled(viewModel.isFavoriteLoading)
                 }
@@ -56,7 +56,7 @@ struct PerfumeDetailView: View {
                     .padding(.top, perfume.imageUrl == nil ? 16 : 0)
                     .padding(.bottom, 24)
 
-                GoldDivider().padding(.horizontal, 24)
+                AccentDivider().padding(.horizontal, 24)
 
                 let pyramid = perfume.notePyramid
                 if !pyramid.isEmpty {
@@ -64,7 +64,7 @@ struct PerfumeDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 20)
 
-                    GoldDivider().padding(.horizontal, 24)
+                    AccentDivider().padding(.horizontal, 24)
                 }
 
                 if let desc = perfume.description, !desc.isEmpty {
@@ -72,7 +72,7 @@ struct PerfumeDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 20)
 
-                    GoldDivider().padding(.horizontal, 24)
+                    AccentDivider().padding(.horizontal, 24)
                 }
 
                 if !perfume.allTagNames.isEmpty {
@@ -80,7 +80,7 @@ struct PerfumeDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 20)
 
-                    GoldDivider().padding(.horizontal, 24)
+                    AccentDivider().padding(.horizontal, 24)
                 }
 
                 if let urlStr = perfume.sourceUrl, let url = URL.robust(urlStr) {
@@ -88,7 +88,7 @@ struct PerfumeDetailView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 20)
 
-                    GoldDivider().padding(.horizontal, 24)
+                    AccentDivider().padding(.horizontal, 24)
                 }
 
                 if !viewModel.similarPerfumes.isEmpty {
@@ -107,7 +107,7 @@ struct PerfumeDetailView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text(perfume.brand.uppercased())
                 .font(AppFont.caption(11))
-                .foregroundColor(AppColor.gold)
+                .foregroundColor(AppColor.accent)
                 .tracking(3)
 
             Text(perfume.name)
@@ -183,7 +183,7 @@ struct PerfumeDetailView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "bag")
                         .font(.system(size: 16))
-                        .foregroundColor(AppColor.gold)
+                        .foregroundColor(AppColor.accent)
 
                     Text("Перейти на сайт")
                         .font(AppFont.body(15))
@@ -244,7 +244,7 @@ struct SimilarCard: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(perfume.brand.uppercased())
                 .font(AppFont.caption(9))
-                .foregroundColor(AppColor.gold)
+                .foregroundColor(AppColor.accent)
                 .tracking(1.5)
                 .lineLimit(1)
 

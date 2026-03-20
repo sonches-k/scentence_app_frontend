@@ -7,16 +7,16 @@ extension View {
     func cardStyle() -> some View {
         self
             .background(.ultraThinMaterial)
-            .background(AppColor.gold.opacity(0.06))
+            .background(AppColor.accent.opacity(0.06))
             .clipShape(RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(
                         LinearGradient(
                             colors: [
-                                AppColor.gold.opacity(0.55),
+                                AppColor.accent.opacity(0.55),
                                 Color.white.opacity(0.25),
-                                AppColor.gold.opacity(0.30),
+                                AppColor.accent.opacity(0.30),
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -24,21 +24,21 @@ extension View {
                         lineWidth: 1.0
                     )
             )
-            .shadow(color: AppColor.gold.opacity(0.25), radius: 10, x: 0, y: 3)
-            .shadow(color: AppColor.gold.opacity(0.10), radius: 28, x: 0, y: 0)
+            .shadow(color: AppColor.accent.opacity(0.25), radius: 10, x: 0, y: 3)
+            .shadow(color: AppColor.accent.opacity(0.10), radius: 28, x: 0, y: 0)
     }
 
     /// Glass pill with rose border + glow
     func glassCapsule(active: Bool = false) -> some View {
         self
             .background(.ultraThinMaterial)
-            .background(AppColor.gold.opacity(active ? 0.10 : 0.04))
+            .background(AppColor.accent.opacity(active ? 0.10 : 0.04))
             .clipShape(Capsule())
             .overlay(
                 Capsule().stroke(
                     LinearGradient(
                         colors: [
-                            AppColor.gold.opacity(active ? 0.70 : 0.45),
+                            AppColor.accent.opacity(active ? 0.70 : 0.45),
                             Color.white.opacity(0.20),
                         ],
                         startPoint: .topLeading,
@@ -47,27 +47,27 @@ extension View {
                     lineWidth: 1.0
                 )
             )
-            .shadow(color: AppColor.gold.opacity(active ? 0.30 : 0.18), radius: 8, x: 0, y: 2)
+            .shadow(color: AppColor.accent.opacity(active ? 0.30 : 0.18), radius: 8, x: 0, y: 2)
     }
 
     /// Glass input field (rounded rect, rose border, glow)
     func glassInputField(cornerRadius: CGFloat = 16) -> some View {
         self
             .background(.ultraThinMaterial)
-            .background(AppColor.gold.opacity(0.04))
+            .background(AppColor.accent.opacity(0.04))
             .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(
                         LinearGradient(
-                            colors: [AppColor.gold.opacity(0.50), Color.white.opacity(0.20)],
+                            colors: [AppColor.accent.opacity(0.50), Color.white.opacity(0.20)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
                         lineWidth: 1.0
                     )
             )
-            .shadow(color: AppColor.gold.opacity(0.18), radius: 10, x: 0, y: 3)
+            .shadow(color: AppColor.accent.opacity(0.18), radius: 10, x: 0, y: 3)
     }
 
     /// Consistent glass nav bar
@@ -75,10 +75,10 @@ extension View {
         self.toolbarBackground(.ultraThinMaterial, for: .navigationBar)
     }
 
-    func goldBorder() -> some View {
+    func accentBorder() -> some View {
         self.overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(AppColor.gold.opacity(0.6), lineWidth: 1)
+                .stroke(AppColor.accent.opacity(0.6), lineWidth: 1)
         )
     }
 
@@ -106,23 +106,23 @@ struct AppBackground: View {
     }
 }
 
-// MARK: - GoldDivider
+// MARK: - AccentDivider
 
-struct GoldDivider: View {
+struct AccentDivider: View {
     var body: some View {
         LinearGradient(
-            colors: [.clear, AppColor.gold.opacity(0.5), .clear],
+            colors: [.clear, AppColor.accent.opacity(0.5), .clear],
             startPoint: .leading, endPoint: .trailing
         )
         .frame(height: 0.5)
     }
 }
 
-// MARK: - GoldButtonStyle
+// MARK: - PrimaryButtonStyle
 // Light: navy gradient button (matches branded look on beige bg)
 // Dark:  rose gradient button (visible + themed on dark navy bg)
 
-struct GoldButtonStyle: ButtonStyle {
+struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.colorScheme) private var scheme
 
     func makeBody(configuration: Configuration) -> some View {
@@ -167,9 +167,9 @@ struct OutlineButtonStyle: ButtonStyle {
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
-                    .stroke(AppColor.gold.opacity(0.45), lineWidth: 1.0)
+                    .stroke(AppColor.accent.opacity(0.45), lineWidth: 1.0)
             )
-            .shadow(color: AppColor.gold.opacity(0.15), radius: 8, x: 0, y: 2)
+            .shadow(color: AppColor.accent.opacity(0.15), radius: 8, x: 0, y: 2)
             .opacity(configuration.isPressed ? 0.7 : 1.0)
     }
 }
@@ -207,7 +207,7 @@ struct ExpandableMarkdownText: View {
                 } label: {
                     Text(isExpanded ? "Свернуть" : "Показать полностью")
                         .font(AppFont.caption(13))
-                        .foregroundColor(AppColor.gold)
+                        .foregroundColor(AppColor.accent)
                 }
             }
         }
@@ -239,7 +239,7 @@ struct InfoButton: View {
             }
             .frame(maxWidth: 220, maxHeight: 130)
             .background(.ultraThinMaterial)
-            .background(AppColor.gold.opacity(0.06))
+            .background(AppColor.accent.opacity(0.06))
             .presentationCompactAdaptation(.popover)
         }
     }

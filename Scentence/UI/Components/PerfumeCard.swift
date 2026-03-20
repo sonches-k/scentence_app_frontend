@@ -8,7 +8,7 @@ struct PerfumeCard: View {
             HStack {
                 Text(perfume.brand.uppercased())
                     .font(AppFont.caption(10))
-                    .foregroundColor(AppColor.gold)
+                    .foregroundColor(AppColor.accent)
                     .tracking(2)
 
                 Spacer()
@@ -46,7 +46,7 @@ struct PerfumeCard: View {
                     Capsule()
                         .fill(
                             LinearGradient(
-                                colors: [AppColor.gold.opacity(0.6), AppColor.gold],
+                                colors: [AppColor.accent.opacity(0.6), AppColor.accent],
                                 startPoint: .leading, endPoint: .trailing
                             )
                         )
@@ -76,10 +76,10 @@ struct RelevanceBadge: View {
             Text("match")
                 .font(.system(size: 9, weight: .regular, design: .default))
         }
-        .foregroundColor(AppColor.gold)
+        .foregroundColor(AppColor.accent)
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
-        .background(AppColor.gold.opacity(0.1))
+        .background(AppColor.accent.opacity(0.1))
         .clipShape(Capsule())
     }
 }

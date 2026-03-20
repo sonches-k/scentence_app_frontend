@@ -29,7 +29,7 @@ struct MainTabView: View {
                 }
                 .tag(AppState.AppTab.profile)
         }
-        .tint(AppColor.gold)
+        .tint(AppColor.accent)
         .toolbarBackground(.ultraThinMaterial, for: .tabBar)
     }
 }

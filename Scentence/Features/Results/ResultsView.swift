@@ -17,14 +17,14 @@ struct ResultsView: View {
                         .padding(.top, 16)
                         .padding(.bottom, 24)
 
-                    GoldDivider().padding(.horizontal, 24)
+                    AccentDivider().padding(.horizontal, 24)
 
                     if !response.notePyramid.isEmpty {
                         NotePyramidSection(pyramid: response.notePyramid)
                             .padding(.horizontal, 24)
                             .padding(.vertical, 20)
 
-                        GoldDivider().padding(.horizontal, 24)
+                        AccentDivider().padding(.horizontal, 24)
                     }
 
                     VStack(spacing: 12) {
@@ -46,7 +46,7 @@ struct ResultsView: View {
         .navigationTitle("Результаты")
         .navigationBarTitleDisplayMode(.inline)
         .glassNavBar()
-        .tint(AppColor.gold)
+        .tint(AppColor.accent)
     }
 
     // MARK: - Explanation Section
@@ -56,7 +56,7 @@ struct ResultsView: View {
             HStack(spacing: 6) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 11))
-                    .foregroundColor(AppColor.gold)
+                    .foregroundColor(AppColor.accent)
                 Text(query)
                     .font(AppFont.caption(13))
                     .foregroundColor(AppColor.textSecondary)
@@ -64,7 +64,7 @@ struct ResultsView: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(AppColor.gold.opacity(0.1))
+            .background(AppColor.accent.opacity(0.1))
             .clipShape(RoundedRectangle(cornerRadius: 8))
 
             ExpandableMarkdownText(text: response.explanation)
@@ -94,11 +94,11 @@ struct NotePyramidSection: View {
     private static let styles: [TierStyle] = [
         TierStyle(
             label: "Верхние", hint: "Первое впечатление",
-            bg: AppColor.gold.opacity(0.12),
-            pillBg: AppColor.gold.opacity(0.08),
-            pillBorder: AppColor.gold.opacity(0.55),
-            pillText: AppColor.gold,
-            accent: AppColor.gold
+            bg: AppColor.accent.opacity(0.12),
+            pillBg: AppColor.accent.opacity(0.08),
+            pillBorder: AppColor.accent.opacity(0.55),
+            pillText: AppColor.accent,
+            accent: AppColor.accent
         ),
         TierStyle(
             label: "Сердце", hint: "Раскрывается за 15 мин",

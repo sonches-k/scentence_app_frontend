@@ -93,13 +93,13 @@ struct SearchView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
-                                    colors: [AppColor.gold.opacity(0.50), Color.white.opacity(0.20)],
+                                    colors: [AppColor.accent.opacity(0.50), Color.white.opacity(0.20)],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 1.0
                             )
                     )
-                    .shadow(color: AppColor.gold.opacity(0.18), radius: 10, x: 0, y: 3)
+                    .shadow(color: AppColor.accent.opacity(0.18), radius: 10, x: 0, y: 3)
 
                 if !viewModel.queryText.isEmpty {
                     Button { viewModel.clear() } label: {
@@ -126,7 +126,7 @@ struct SearchView: View {
                     Text("Найти ароматы")
                 }
             }
-            .buttonStyle(GoldButtonStyle())
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.isLoading || viewModel.queryText.trimmingCharacters(in: .whitespaces).count < 3)
         }
         .padding(.horizontal, 24)
@@ -153,7 +153,7 @@ struct SearchView: View {
                             .clipShape(Circle())
                     }
                 }
-                .foregroundColor(viewModel.filtersVM.activeCount > 0 ? AppColor.gold : AppColor.textSecondary)
+                .foregroundColor(viewModel.filtersVM.activeCount > 0 ? AppColor.accent : AppColor.textSecondary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .glassCapsule(active: viewModel.filtersVM.activeCount > 0)
@@ -243,7 +243,7 @@ struct SearchView: View {
                     }
                     Spacer()
                     Image(systemName: "chevron.right")
-                        .foregroundColor(AppColor.gold)
+                        .foregroundColor(AppColor.accent)
                 }
                 .padding(16)
                 .cardStyle()

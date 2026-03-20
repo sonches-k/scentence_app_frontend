@@ -38,7 +38,7 @@ struct HistoryView: View {
             .navigationTitle("История")
             .navigationBarTitleDisplayMode(.inline)
             .glassNavBar()
-            .tint(AppColor.gold)
+            .tint(AppColor.accent)
             .task {
                 guard let token = authState.token else { return }
                 await viewModel.load(token: token)
@@ -80,7 +80,7 @@ struct HistoryRow: View {
         HStack(spacing: 12) {
             Image(systemName: "arrow.counterclockwise")
                 .font(.system(size: 13))
-                .foregroundColor(AppColor.gold)
+                .foregroundColor(AppColor.accent)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.query)

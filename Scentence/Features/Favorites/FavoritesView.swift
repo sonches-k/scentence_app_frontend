@@ -40,7 +40,7 @@ struct FavoritesView: View {
             .navigationTitle("Избранное")
             .navigationBarTitleDisplayMode(.inline)
             .glassNavBar()
-            .tint(AppColor.gold)
+            .tint(AppColor.accent)
             .task {
                 guard let token = authState.token else { return }
                 await viewModel.load(token: token)
@@ -102,7 +102,7 @@ struct FavoritePerfumeRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(perfume.brand.uppercased())
                     .font(AppFont.caption(9))
-                    .foregroundColor(AppColor.gold)
+                    .foregroundColor(AppColor.accent)
                     .tracking(2)
                 Text(perfume.name)
                     .font(AppFont.body(16))

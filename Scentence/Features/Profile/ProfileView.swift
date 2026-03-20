@@ -21,7 +21,7 @@ struct ProfileView: View {
                             .padding(.top, 32)
                             .padding(.bottom, 32)
 
-                        GoldDivider().padding(.horizontal, 24)
+                        AccentDivider().padding(.horizontal, 24)
 
                         settingsSection
                             .padding(.top, 24)
@@ -32,7 +32,7 @@ struct ProfileView: View {
             .navigationTitle("Профиль")
             .navigationBarTitleDisplayMode(.inline)
             .glassNavBar()
-            .tint(AppColor.gold)
+            .tint(AppColor.accent)
             .alert("Выйти из аккаунта?", isPresented: $showSignOutAlert) {
                 Button("Выйти", role: .destructive) { authState.signOut() }
                 Button("Отмена", role: .cancel) {}
@@ -67,7 +67,7 @@ struct ProfileView: View {
                     avatarCircle
                     Image(systemName: "camera.circle.fill")
                         .font(.system(size: 24))
-                        .foregroundStyle(.white, AppColor.gold)
+                        .foregroundStyle(.white, AppColor.accent)
                         .offset(x: 4, y: 4)
                 }
             }
@@ -91,15 +91,15 @@ struct ProfileView: View {
             } else {
                 Text(String(authState.currentUser?.displayName.prefix(1).uppercased() ?? "?"))
                     .font(AppFont.display(34))
-                    .foregroundColor(AppColor.gold)
+                    .foregroundColor(AppColor.accent)
             }
         }
         .frame(width: 88, height: 88)
             .background(.ultraThinMaterial)
             .clipShape(Circle())
-            .overlay(Circle().stroke(AppColor.gold.opacity(0.55), lineWidth: 1.5))
-            .shadow(color: AppColor.gold.opacity(0.30), radius: 16, x: 0, y: 4)
-            .shadow(color: AppColor.gold.opacity(0.12), radius: 32, x: 0, y: 0)
+            .overlay(Circle().stroke(AppColor.accent.opacity(0.55), lineWidth: 1.5))
+            .shadow(color: AppColor.accent.opacity(0.30), radius: 16, x: 0, y: 4)
+            .shadow(color: AppColor.accent.opacity(0.12), radius: 32, x: 0, y: 0)
     }
 
     private var nameDisplayView: some View {
@@ -160,7 +160,7 @@ struct ProfileView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 24)
                         .padding(.vertical, 10)
-                        .background(AppColor.gold)
+                        .background(AppColor.accent)
                         .clipShape(Capsule())
                 }
             }
@@ -178,7 +178,7 @@ struct ProfileView: View {
             ) {
                 Toggle("", isOn: $appState.isDarkMode)
                     .labelsHidden()
-                    .tint(AppColor.gold)
+                    .tint(AppColor.accent)
             }
 
             Button {

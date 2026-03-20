@@ -47,7 +47,7 @@ struct AuthView: View {
                 .tracking(4)
                 .textCase(.uppercase)
 
-            GoldDivider()
+            AccentDivider()
                 .frame(width: 60)
                 .padding(.top, 8)
         }
@@ -81,7 +81,7 @@ struct AuthView: View {
             Button("Получить код") {
                 Task { await viewModel.requestCode() }
             }
-            .buttonStyle(GoldButtonStyle())
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.isLoading)
             .overlay(
                 Group {
@@ -123,7 +123,7 @@ struct AuthView: View {
             Button("Войти") {
                 Task { await viewModel.verifyCode(authState: authState) }
             }
-            .buttonStyle(GoldButtonStyle())
+            .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.isLoading || viewModel.code.count < 6)
             .overlay(
                 Group {
@@ -144,7 +144,7 @@ struct AuthView: View {
                     Task { await viewModel.resendCode() }
                 }
                 .font(AppFont.caption(14))
-                .foregroundColor(AppColor.gold)
+                .foregroundColor(AppColor.accent)
             }
         }
     }
@@ -228,13 +228,13 @@ struct OTPDigitBox: View {
             .foregroundColor(AppColor.textPrimary)
             .frame(width: 44, height: 56)
             .background(.ultraThinMaterial)
-            .background(AppColor.gold.opacity(isActive ? 0.10 : 0.04))
+            .background(AppColor.accent.opacity(isActive ? 0.10 : 0.04))
             .clipShape(RoundedRectangle(cornerRadius: 10))
             .overlay(
                 RoundedRectangle(cornerRadius: 10)
-                    .stroke(AppColor.gold.opacity(isActive ? 0.75 : 0.35), lineWidth: isActive ? 1.5 : 1.0)
+                    .stroke(AppColor.accent.opacity(isActive ? 0.75 : 0.35), lineWidth: isActive ? 1.5 : 1.0)
             )
-            .shadow(color: AppColor.gold.opacity(isActive ? 0.35 : 0.15), radius: isActive ? 10 : 6, x: 0, y: 2)
+            .shadow(color: AppColor.accent.opacity(isActive ? 0.35 : 0.15), radius: isActive ? 10 : 6, x: 0, y: 2)
     }
 }
 
