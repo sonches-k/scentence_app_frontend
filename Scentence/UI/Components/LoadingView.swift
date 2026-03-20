@@ -26,27 +26,27 @@ struct BreathingSearchLoader: View {
                 // Main breathing circle
                 Circle()
                     .fill(.ultraThinMaterial)
-                    .overlay(Circle().fill(AppColor.gold.opacity(0.14)))
+                    .overlay(Circle().fill(AppColor.accent.opacity(0.14)))
                     .frame(width: 84, height: 84)
                     .overlay(
                         Circle()
                             .stroke(
                                 LinearGradient(
-                                    colors: [AppColor.gold.opacity(0.65), AppColor.gold.opacity(0.30)],
+                                    colors: [AppColor.accent.opacity(0.65), AppColor.accent.opacity(0.30)],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 1.5
                             )
                     )
-                    .shadow(color: AppColor.gold.opacity(breathe ? 0.50 : 0.22), radius: breathe ? 24 : 12, x: 0, y: 0)
-                    .shadow(color: AppColor.gold.opacity(breathe ? 0.22 : 0.08), radius: breathe ? 48 : 20, x: 0, y: 0)
+                    .shadow(color: AppColor.accent.opacity(breathe ? 0.50 : 0.22), radius: breathe ? 24 : 12, x: 0, y: 0)
+                    .shadow(color: AppColor.accent.opacity(breathe ? 0.22 : 0.08), radius: breathe ? 48 : 20, x: 0, y: 0)
                     .scaleEffect(breathe ? 1.12 : 0.90)
                     .animation(.easeInOut(duration: 1.9).repeatForever(autoreverses: true), value: breathe)
 
                 // Center icon
                 Image(systemName: "sparkles")
                     .font(.system(size: 26, weight: .thin))
-                    .foregroundColor(AppColor.gold)
+                    .foregroundColor(AppColor.accent)
                     .opacity(breathe ? 1.0 : 0.55)
                     .scaleEffect(breathe ? 1.10 : 0.88)
                     .animation(.easeInOut(duration: 1.9).repeatForever(autoreverses: true), value: breathe)
@@ -80,7 +80,7 @@ struct BreathingSearchLoader: View {
     @ViewBuilder
     private func rippleRing(active: Bool) -> some View {
         Circle()
-            .stroke(AppColor.gold.opacity(active ? 0.0 : 0.40), lineWidth: 1.2)
+            .stroke(AppColor.accent.opacity(active ? 0.0 : 0.40), lineWidth: 1.2)
             .frame(width: 84, height: 84)
             .scaleEffect(active ? 2.8 : 1.0)
             .animation(
@@ -107,14 +107,14 @@ struct LoadingView: View {
         VStack(spacing: 20) {
             ZStack {
                 Circle()
-                    .stroke(AppColor.gold.opacity(0.15), lineWidth: 1)
+                    .stroke(AppColor.accent.opacity(0.15), lineWidth: 1)
                     .frame(width: 48, height: 48)
 
                 Circle()
                     .trim(from: 0, to: 0.25)
                     .stroke(
                         LinearGradient(
-                            colors: [AppColor.gold, AppColor.gold.opacity(0.2)],
+                            colors: [AppColor.accent, AppColor.accent.opacity(0.2)],
                             startPoint: .leading, endPoint: .trailing
                         ),
                         style: StrokeStyle(lineWidth: 1.5, lineCap: .round)

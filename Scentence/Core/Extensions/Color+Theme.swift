@@ -10,8 +10,8 @@ enum AppColor {
     static let surface       = Color.dyn(l: "#2F4156", d: "#2F4156")  // navy (for explicit buttons in light)
     static let card          = Color.dyn(l: "#FFFFFF", d: "#1E3148")
     static let cardBorder    = Color.dyn(l: "#A0707E", d: "#C090A0")  // rose for border — visible on both bgs
-    static let gold          = Color.dyn(l: "#A0707E", d: "#E8AABB")  // lighter rose on dark
-    static let goldLight     = Color.dyn(l: "#F7C9D4", d: "#4A2030")
+    static let accent        = Color.dyn(l: "#A0707E", d: "#E8AABB")  // rose/mauve — lighter on dark
+    static let accentLight   = Color.dyn(l: "#F7C9D4", d: "#4A2030")
     static let textPrimary   = Color.dyn(l: "#2F4156", d: "#F0EAE5")  // navy / warm white
     static let textSecondary = Color.dyn(l: "#6B7D8D", d: "#E8C0C8")  // gray  / light rose ← was blue-gray
     static let textMuted     = Color.dyn(l: "#9BAAB8", d: "#C8A0AA")  // light gray / muted rose ← was too dark

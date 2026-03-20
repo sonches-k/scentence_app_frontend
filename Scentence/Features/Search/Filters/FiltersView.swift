@@ -16,7 +16,7 @@ struct FiltersView: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         filterSection("Пол", options: viewModel.availableGenders, selected: $viewModel.selectedGenders)
-                        GoldDivider().padding(.horizontal)
+                        AccentDivider().padding(.horizontal)
 
                         searchableFilterSection(
                             "Семейство",
@@ -25,7 +25,7 @@ struct FiltersView: View {
                             selected: $viewModel.selectedFamilies,
                             searchText: $familySearch
                         )
-                        GoldDivider().padding(.horizontal)
+                        AccentDivider().padding(.horizontal)
 
                         filterSection(
                             "Тип",
@@ -33,10 +33,10 @@ struct FiltersView: View {
                             options: viewModel.availableProductTypes,
                             selected: $viewModel.selectedProductTypes
                         )
-                        GoldDivider().padding(.horizontal)
+                        AccentDivider().padding(.horizontal)
 
                         searchableFilterSection("Бренд", options: viewModel.availableBrands, selected: $viewModel.selectedBrands, searchText: $brandSearch)
-                        GoldDivider().padding(.horizontal)
+                        AccentDivider().padding(.horizontal)
 
                         searchableFilterSection(
                             "Ноты",
@@ -45,7 +45,7 @@ struct FiltersView: View {
                             selected: $viewModel.selectedNotes,
                             searchText: $noteSearch
                         )
-                        GoldDivider().padding(.horizontal)
+                        AccentDivider().padding(.horizontal)
 
                         yearSection
                     }
@@ -59,7 +59,7 @@ struct FiltersView: View {
                             .buttonStyle(OutlineButtonStyle())
 
                         Button("Применить") { dismiss() }
-                            .buttonStyle(GoldButtonStyle())
+                            .buttonStyle(PrimaryButtonStyle())
                     }
                     .padding(.horizontal, 24)
                     .padding(.bottom, 32)
@@ -92,7 +92,7 @@ struct FiltersView: View {
                 }
             }
             .glassNavBar()
-            .tint(AppColor.gold)
+            .tint(AppColor.accent)
         }
     }
 
@@ -177,7 +177,7 @@ struct FiltersView: View {
                         .font(AppFont.caption(10))
                         .foregroundColor(.white)
                         .frame(width: 16, height: 16)
-                        .background(AppColor.gold)
+                        .background(AppColor.accent)
                         .clipShape(Circle())
                 }
             }
@@ -300,13 +300,13 @@ struct FilterChip: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(Material.ultraThinMaterial)
-                .background(isSelected ? AppColor.gold : Color.clear)
-                .background(AppColor.gold.opacity(isSelected ? 0 : 0.05))
+                .background(isSelected ? AppColor.accent : Color.clear)
+                .background(AppColor.accent.opacity(isSelected ? 0 : 0.05))
                 .clipShape(Capsule())
                 .overlay(
-                    Capsule().stroke(AppColor.gold.opacity(isSelected ? 0 : 0.45), lineWidth: 1.0)
+                    Capsule().stroke(AppColor.accent.opacity(isSelected ? 0 : 0.45), lineWidth: 1.0)
                 )
-                .shadow(color: AppColor.gold.opacity(isSelected ? 0.35 : 0.15), radius: 6, x: 0, y: 2)
+                .shadow(color: AppColor.accent.opacity(isSelected ? 0.35 : 0.15), radius: 6, x: 0, y: 2)
         }
     }
 }
