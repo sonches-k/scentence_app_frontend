@@ -18,6 +18,8 @@ final class MockAPIService: APIServiceProtocol {
     var removeFavoriteResult: Result<MessageResponse, Error> = .failure(MockError.notConfigured)
     var getHistoryResult: Result<[SearchHistoryEntry], Error> = .failure(MockError.notConfigured)
     var updateNameResult: Result<User, Error> = .failure(MockError.notConfigured)
+    var refreshTokensResult: Result<TokenResponse, Error> = .failure(MockError.notConfigured)
+    var logoutResult: Result<MessageResponse, Error> = .success(MessageResponse(message: "OK"))
 
     // MARK: - Счётчики вызовов
 
@@ -94,5 +96,13 @@ final class MockAPIService: APIServiceProtocol {
 
     func updateName(name: String, token: String) async throws -> User {
         try updateNameResult.get()
+    }
+
+    func refreshTokens(refreshToken: String) async throws -> TokenResponse {
+        try refreshTokensResult.get()
+    }
+
+    func logout(refreshToken: String) async throws -> MessageResponse {
+        try logoutResult.get()
     }
 }

@@ -15,14 +15,25 @@ struct VerifyCodeRequest: Encodable {
 
 // MARK: - Response
 
-/// Ответ сервера с JWT-токеном после успешной верификации.
+/// Ответ сервера с парой токенов после верификации или обновления.
 struct TokenResponse: Decodable {
     let accessToken: String
+    let refreshToken: String
     let tokenType: String
 
     enum CodingKeys: String, CodingKey {
-        case accessToken = "access_token"
-        case tokenType   = "token_type"
+        case accessToken  = "access_token"
+        case refreshToken = "refresh_token"
+        case tokenType    = "token_type"
+    }
+}
+
+/// Запрос на обновление токена или выход из аккаунта.
+struct RefreshRequest: Encodable {
+    let refreshToken: String
+
+    enum CodingKeys: String, CodingKey {
+        case refreshToken = "refresh_token"
     }
 }
 

@@ -11,7 +11,13 @@ struct HistoryView: View {
                 AppBackground()
 
                 if viewModel.isLoading {
-                    LoadingView(message: "Загружаем историю...")
+                    ScrollView {
+                        LazyVStack(spacing: 8) {
+                            ForEach(0..<5, id: \.self) { _ in SkeletonHistoryRow() }
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 16)
+                    }
                 } else if viewModel.history.isEmpty {
                     EmptyStateView(
                         icon: "clock",

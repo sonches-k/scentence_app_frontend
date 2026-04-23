@@ -13,8 +13,8 @@ enum AppColor {
     static let accent        = Color.dyn(l: "#A0707E", d: "#E8AABB")  // rose/mauve — lighter on dark
     static let accentLight   = Color.dyn(l: "#F7C9D4", d: "#4A2030")
     static let textPrimary   = Color.dyn(l: "#2F4156", d: "#F0EAE5")  // navy / warm white
-    static let textSecondary = Color.dyn(l: "#6B7D8D", d: "#E8C0C8")  // gray  / light rose ← was blue-gray
-    static let textMuted     = Color.dyn(l: "#9BAAB8", d: "#C8A0AA")  // light gray / muted rose ← was too dark
+    static let textSecondary = Color.dyn(l: "#4A5E6E", d: "#E8C0C8")  // darker blue-gray in light / light rose in dark
+    static let textMuted     = Color.dyn(l: "#6B7D8D", d: "#C8A0AA")  // medium gray in light / muted rose in dark
     static let separator     = Color.dyn(l: "#D0B8C0", d: "#4A3040")  // visible in both themes
     static let error         = Color.dyn(l: "#D4596A", d: "#F08090")
     static let success       = Color.dyn(l: "#6BBF8A", d: "#7AD09A")

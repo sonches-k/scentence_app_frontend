@@ -15,6 +15,29 @@ struct RemoteImage: View {
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(maxHeight: maxHeight)
+                    .mask(
+                        ZStack {
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .black.opacity(0.7), location: 0),
+                                    .init(color: .black, location: 0.08),
+                                    .init(color: .black, location: 0.80),
+                                    .init(color: .clear,              location: 1),
+                                ],
+                                startPoint: .top, endPoint: .bottom
+                            )
+                            LinearGradient(
+                                stops: [
+                                    .init(color: .clear, location: 0),
+                                    .init(color: .black, location: 0.12),
+                                    .init(color: .black, location: 0.88),
+                                    .init(color: .clear, location: 1),
+                                ],
+                                startPoint: .leading, endPoint: .trailing
+                            )
+                            .blendMode(.multiply)
+                        }
+                    )
             } else if isFailed {
                 VStack(spacing: 8) {
                     Image(systemName: "photo")
@@ -34,6 +57,31 @@ struct RemoteImage: View {
         .frame(maxWidth: .infinity)
         .task(id: url) {
             await loadImage()
+        }
+    }
+
+    // MARK: - Edge-fade mask (reused in preview)
+    static func edgeFadeMask() -> some View {
+        ZStack {
+            LinearGradient(
+                stops: [
+                    .init(color: .black.opacity(0.7), location: 0),
+                    .init(color: .black, location: 0.08),
+                    .init(color: .black, location: 0.80),
+                    .init(color: .clear,              location: 1),
+                ],
+                startPoint: .top, endPoint: .bottom
+            )
+            LinearGradient(
+                stops: [
+                    .init(color: .clear, location: 0),
+                    .init(color: .black, location: 0.12),
+                    .init(color: .black, location: 0.88),
+                    .init(color: .clear, location: 1),
+                ],
+                startPoint: .leading, endPoint: .trailing
+            )
+            .blendMode(.multiply)
         }
     }
 
@@ -67,4 +115,47 @@ struct RemoteImage: View {
             isLoading = false
         }
     }
+}
+
+// MARK: - Preview
+
+#Preview("Edge fade – Light") {
+    ZStack {
+        AppBackground()
+        VStack(spacing: 0) {
+            // Имитация фото флакона: цветной прямоугольник с градиентом
+            LinearGradient(
+                colors: [AppColor.accentLight, AppColor.accent.opacity(0.6)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            .frame(height: 280)
+            .mask(RemoteImage.edgeFadeMask())
+
+            Text("Chanel No.5")
+                .font(AppFont.display(26))
+                .foregroundColor(AppColor.textPrimary)
+                .padding(.top, 16)
+        }
+    }
+    .preferredColorScheme(.light)
+}
+
+#Preview("Edge fade – Dark") {
+    ZStack {
+        AppBackground()
+        VStack(spacing: 0) {
+            LinearGradient(
+                colors: [AppColor.accentLight, AppColor.accent.opacity(0.6)],
+                startPoint: .topLeading, endPoint: .bottomTrailing
+            )
+            .frame(height: 280)
+            .mask(RemoteImage.edgeFadeMask())
+
+            Text("Chanel No.5")
+                .font(AppFont.display(26))
+                .foregroundColor(AppColor.textPrimary)
+                .padding(.top, 16)
+        }
+    }
+    .preferredColorScheme(.dark)
 }

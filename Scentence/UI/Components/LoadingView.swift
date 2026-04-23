@@ -138,6 +138,64 @@ struct LoadingView: View {
     }
 }
 
+// MARK: - Skeleton primitives
+
+private struct SkeletonBox: View {
+    var width: CGFloat? = nil
+    var height: CGFloat = 11
+    var cornerRadius: CGFloat = 5
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius)
+            .fill(AppColor.accent.opacity(0.13))
+            .frame(width: width, height: height)
+    }
+}
+
+// MARK: - SkeletonFavoriteRow
+
+struct SkeletonFavoriteRow: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 8)
+                .fill(AppColor.accent.opacity(0.13))
+                .frame(width: 48, height: 48)
+
+            VStack(alignment: .leading, spacing: 7) {
+                SkeletonBox(width: 56, height: 8)
+                SkeletonBox(width: 160, height: 14)
+                SkeletonBox(width: 80, height: 9)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .shimmer()
+        .cardStyle()
+    }
+}
+
+// MARK: - SkeletonHistoryRow
+
+struct SkeletonHistoryRow: View {
+    var body: some View {
+        HStack(spacing: 12) {
+            Circle()
+                .fill(AppColor.accent.opacity(0.13))
+                .frame(width: 26, height: 26)
+
+            VStack(alignment: .leading, spacing: 7) {
+                SkeletonBox(height: 13)
+                SkeletonBox(width: 72, height: 9)
+            }
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 14)
+        .shimmer()
+        .cardStyle()
+    }
+}
+
 // MARK: - EmptyStateView
 
 struct EmptyStateView: View {
@@ -162,5 +220,29 @@ struct EmptyStateView: View {
         }
         .padding(40)
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Previews
+
+#Preview("Skeleton Favorite") {
+    ZStack {
+        AppBackground()
+        LazyVStack(spacing: 12) {
+            ForEach(0..<4, id: \.self) { _ in SkeletonFavoriteRow() }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 24)
+    }
+}
+
+#Preview("Skeleton History") {
+    ZStack {
+        AppBackground()
+        LazyVStack(spacing: 8) {
+            ForEach(0..<5, id: \.self) { _ in SkeletonHistoryRow() }
+        }
+        .padding(.horizontal, 24)
+        .padding(.top, 24)
     }
 }

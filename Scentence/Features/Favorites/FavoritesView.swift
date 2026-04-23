@@ -10,7 +10,13 @@ struct FavoritesView: View {
                 AppBackground()
 
                 if viewModel.isLoading {
-                    LoadingView(message: "Загружаем избранное...")
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(0..<4, id: \.self) { _ in SkeletonFavoriteRow() }
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 16)
+                    }
                 } else if viewModel.favorites.isEmpty {
                     EmptyStateView(
                         icon: "heart",

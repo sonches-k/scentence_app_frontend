@@ -126,6 +126,8 @@ struct NotePyramidSection: View {
         return result
     }
 
+    @State private var appeared = false
+
     var body: some View {
         VStack(spacing: 14) {
             Text("ПИРАМИДА НОТ")
@@ -135,7 +137,7 @@ struct NotePyramidSection: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             VStack(spacing: 10) {
-                ForEach(Array(tiers.enumerated()), id: \.offset) { _, tier in
+                ForEach(Array(tiers.enumerated()), id: \.offset) { tierIdx, tier in
                     VStack(alignment: .leading, spacing: 8) {
                         HStack(spacing: 6) {
                             Text(tier.style.label)
@@ -151,7 +153,7 @@ struct NotePyramidSection: View {
                         }
 
                         FlowLayout(spacing: 6) {
-                            ForEach(tier.notes, id: \.self) { note in
+                            ForEach(Array(tier.notes.enumerated()), id: \.offset) { noteIdx, note in
                                 Text(note)
                                     .font(.system(size: 13, weight: .medium, design: .default))
                                     .foregroundColor(tier.style.pillText)
@@ -164,6 +166,13 @@ struct NotePyramidSection: View {
                                         Capsule().stroke(tier.style.pillBorder, lineWidth: 1.0)
                                     )
                                     .shadow(color: tier.style.accent.opacity(0.18), radius: 5, x: 0, y: 1)
+                                    .opacity(appeared ? 1 : 0)
+                                    .scaleEffect(appeared ? 1 : 0.70)
+                                    .animation(
+                                        .spring(response: 0.38, dampingFraction: 0.62)
+                                            .delay(Double(tierIdx) * 0.16 + Double(noteIdx) * 0.055),
+                                        value: appeared
+                                    )
                             }
                         }
                     }
@@ -178,9 +187,17 @@ struct NotePyramidSection: View {
                     )
                     .shadow(color: tier.style.accent.opacity(0.20), radius: 10, x: 0, y: 3)
                     .shadow(color: tier.style.accent.opacity(0.08), radius: 24, x: 0, y: 0)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 22)
+                    .animation(
+                        .spring(response: 0.52, dampingFraction: 0.74)
+                            .delay(Double(tierIdx) * 0.14),
+                        value: appeared
+                    )
                 }
             }
         }
+        .onAppear { appeared = true }
     }
 }
 
