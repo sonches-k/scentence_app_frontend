@@ -20,6 +20,15 @@ final class ProfileViewModel: ObservableObject {
         }
     }
 
+    func signOut(authState: AuthState) async {
+        if let refreshToken = authState.refreshToken {
+            // Лучший вариант — инвалидируем токен на бэкенде. Игнорируем ошибку:
+            // если сервер недоступен, локальный разлогин всё равно произойдёт.
+            _ = try? await api.logout(refreshToken: refreshToken)
+        }
+        authState.signOut()
+    }
+
     func updateName(token: String) async -> User? {
         let name = newName.trimmingCharacters(in: .whitespaces)
         guard !name.isEmpty else { return nil }

@@ -4,6 +4,7 @@ struct PerfumeDetailView: View {
     let perfumeId: Int
     @EnvironmentObject var authState: AuthState
     @StateObject private var viewModel = PerfumeDetailViewModel()
+    @State private var heartBounced = false
 
     var body: some View {
         ZStack {
@@ -25,10 +26,13 @@ struct PerfumeDetailView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button {
                         guard let token = authState.token else { return }
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        heartBounced.toggle()
                         Task { await viewModel.toggleFavorite(perfumeId: perfume.id, token: token) }
                     } label: {
                         Image(systemName: viewModel.isFavorite ? "heart.fill" : "heart")
                             .foregroundColor(viewModel.isFavorite ? AppColor.accent : AppColor.textSecondary)
+                            .symbolEffect(.bounce, value: heartBounced)
                     }
                     .disabled(viewModel.isFavoriteLoading)
                 }

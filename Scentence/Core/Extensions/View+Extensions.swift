@@ -14,9 +14,9 @@ extension View {
                     .stroke(
                         LinearGradient(
                             colors: [
-                                AppColor.accent.opacity(0.55),
-                                Color.white.opacity(0.25),
-                                AppColor.accent.opacity(0.30),
+                                AppColor.accent.opacity(0.60),
+                                AppColor.accent.opacity(0.20),
+                                AppColor.accent.opacity(0.45),
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -39,7 +39,7 @@ extension View {
                     LinearGradient(
                         colors: [
                             AppColor.accent.opacity(active ? 0.70 : 0.45),
-                            Color.white.opacity(0.20),
+                            AppColor.accent.opacity(active ? 0.20 : 0.12),
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -60,7 +60,7 @@ extension View {
                 RoundedRectangle(cornerRadius: cornerRadius)
                     .stroke(
                         LinearGradient(
-                            colors: [AppColor.accent.opacity(0.50), Color.white.opacity(0.20)],
+                            colors: [AppColor.accent.opacity(0.55), AppColor.accent.opacity(0.18)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -90,6 +90,43 @@ extension View {
     func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
         if condition { transform(self) } else { self }
     }
+}
+
+// MARK: - ShimmerModifier
+
+struct ShimmerModifier: ViewModifier {
+    @State private var phase: CGFloat = 0
+
+    func body(content: Content) -> some View {
+        content
+            .overlay(
+                GeometryReader { geo in
+                    LinearGradient(
+                        stops: [
+                            .init(color: .clear,                     location: 0.00),
+                            .init(color: AppColor.accent.opacity(0.18), location: 0.40),
+                            .init(color: AppColor.accent.opacity(0.30), location: 0.50),
+                            .init(color: AppColor.accent.opacity(0.18), location: 0.60),
+                            .init(color: .clear,                     location: 1.00),
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                    .frame(width: geo.size.width * 2.5)
+                    .offset(x: -geo.size.width * 0.75 + phase * geo.size.width * 2.5)
+                }
+                .clipped()
+            )
+            .onAppear {
+                withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
+                    phase = 1
+                }
+            }
+    }
+}
+
+extension View {
+    func shimmer() -> some View { modifier(ShimmerModifier()) }
 }
 
 // MARK: - AppBackground

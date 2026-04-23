@@ -93,7 +93,7 @@ struct SearchView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(
                                 LinearGradient(
-                                    colors: [AppColor.accent.opacity(0.50), Color.white.opacity(0.20)],
+                                    colors: [AppColor.accent.opacity(0.55), AppColor.accent.opacity(0.18)],
                                     startPoint: .topLeading, endPoint: .bottomTrailing
                                 ),
                                 lineWidth: 1.0
@@ -155,7 +155,7 @@ struct SearchView: View {
                 }
                 .foregroundColor(viewModel.filtersVM.activeCount > 0 ? AppColor.accent : AppColor.textSecondary)
                 .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .frame(height: 36)
                 .glassCapsule(active: viewModel.filtersVM.activeCount > 0)
             }
 
@@ -183,7 +183,7 @@ struct SearchView: View {
                         .foregroundColor(AppColor.textSecondary)
                 }
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .frame(height: 36)
                 .glassCapsule()
 
                 InfoButton(text: "Сколько ароматов показать в результатах. Больше — дольше ожидание.")

@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 @MainActor
 final class AuthViewModel: ObservableObject {
@@ -12,8 +13,11 @@ final class AuthViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var errorMessage: String?
     @Published var successMessage: String?
+    @Published var resendCountdown: Int = 0
+    @Published var showSuccessSparkle: Bool = false
 
     private let api: APIServiceProtocol
+    private var countdownTask: Task<Void, Never>?
 
     init(api: APIServiceProtocol = APIService.shared) {
         self.api = api
@@ -34,8 +38,21 @@ final class AuthViewModel: ObservableObject {
             let _ = try await api.requestCode(email: email.lowercased().trimmingCharacters(in: .whitespaces))
             successMessage = "Код отправлен на \(email)"
             step = .code
+            startResendTimer()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func startResendTimer() {
+        countdownTask?.cancel()
+        resendCountdown = 60
+        countdownTask = Task { [weak self] in
+            while let self, self.resendCountdown > 0 {
+                try? await Task.sleep(for: .seconds(1))
+                if Task.isCancelled { return }
+                self.resendCountdown -= 1
+            }
         }
     }
 
@@ -54,13 +71,22 @@ final class AuthViewModel: ObservableObject {
                 code: code
             )
             let user = try? await api.getMe(token: tokenResponse.accessToken)
-            authState.signIn(token: tokenResponse.accessToken, user: user)
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            showSuccessSparkle = true
+            try? await Task.sleep(for: .milliseconds(500))
+            authState.signIn(
+                token: tokenResponse.accessToken,
+                refreshToken: tokenResponse.refreshToken,
+                user: user
+            )
         } catch {
             errorMessage = error.localizedDescription
         }
     }
 
     func backToEmail() {
+        countdownTask?.cancel()
+        resendCountdown = 0
         step = .email
         code = ""
         errorMessage = nil
@@ -68,6 +94,7 @@ final class AuthViewModel: ObservableObject {
     }
 
     func resendCode() async {
+        guard resendCountdown == 0 else { return }
         code = ""
         errorMessage = nil
         successMessage = nil

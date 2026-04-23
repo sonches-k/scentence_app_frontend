@@ -92,9 +92,10 @@ struct MetaTag: View {
         Text(text)
             .font(AppFont.caption(11))
             .foregroundColor(AppColor.textSecondary)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 3)
-            .background(AppColor.cardBorder.opacity(0.35))
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(AppColor.accent.opacity(0.08))
+            .clipShape(Capsule())
+            .overlay(Capsule().stroke(AppColor.accent.opacity(0.25), lineWidth: 0.75))
     }
 }

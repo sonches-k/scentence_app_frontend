@@ -17,6 +17,8 @@ protocol APIServiceProtocol {
     func removeFavorite(perfumeId: Int, token: String) async throws -> MessageResponse
     func getHistory(token: String) async throws -> [SearchHistoryEntry]
     func updateName(name: String, token: String) async throws -> User
+    func refreshTokens(refreshToken: String) async throws -> TokenResponse
+    func logout(refreshToken: String) async throws -> MessageResponse
 }
 
 // MARK: - APIService
@@ -49,43 +51,34 @@ final class APIService: APIServiceProtocol {
         body: Encodable? = nil,
         token: String? = nil
     ) async throws -> T {
-        guard let url = URL(string: baseURL + endpoint) else {
-            throw NetworkError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        if let token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        if let body {
-            request.httpBody = try JSONEncoder().encode(body)
-        }
+        let urlRequest = try buildURLRequest(endpoint, method: method, body: body, token: token)
 
         #if DEBUG
         logger.debug("→ \(method) \(endpoint)")
         #endif
 
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await session.data(for: urlRequest)
 
-        guard let httpResponse = response as? HTTPURLResponse else {
+        guard let http = response as? HTTPURLResponse else {
             throw NetworkError.invalidResponse
         }
 
         #if DEBUG
-        logger.debug("← \(httpResponse.statusCode) \(endpoint)")
+        logger.debug("← \(http.statusCode) \(endpoint)")
         #endif
 
-        if !(200...299).contains(httpResponse.statusCode) {
-            if let apiError = try? JSONDecoder().decode(APIError.self, from: data) {
-                throw apiError
+        // 401 interceptor: refresh + retry (пропускаем auth-эндпоинты чтобы не зациклиться)
+        if http.statusCode == 401, !endpoint.hasPrefix("/auth/") {
+            let newTokens = try await performTokenRefresh()
+            let retryRequest = try buildURLRequest(endpoint, method: method, body: body, token: newTokens.accessToken)
+            let (retryData, retryResponse) = try await session.data(for: retryRequest)
+            guard let retryHttp = retryResponse as? HTTPURLResponse else {
+                throw NetworkError.invalidResponse
             }
-            throw NetworkError.httpError(httpResponse.statusCode)
+            return try decode(retryData, statusCode: retryHttp.statusCode)
         }
 
-        return try JSONDecoder().decode(T.self, from: data)
+        return try decode(data, statusCode: http.statusCode)
     }
 
     // MARK: - Auth
@@ -100,6 +93,16 @@ final class APIService: APIServiceProtocol {
 
     func getMe(token: String) async throws -> User {
         try await request("/users/profile", token: token)
+    }
+
+    // MARK: - Token management
+
+    func refreshTokens(refreshToken: String) async throws -> TokenResponse {
+        try await request("/auth/refresh", method: "POST", body: RefreshRequest(refreshToken: refreshToken))
+    }
+
+    func logout(refreshToken: String) async throws -> MessageResponse {
+        try await request("/auth/logout", method: "POST", body: RefreshRequest(refreshToken: refreshToken))
     }
 
     // MARK: - Search
@@ -145,6 +148,70 @@ final class APIService: APIServiceProtocol {
     func updateName(name: String, token: String) async throws -> User {
         try await request("/users/profile", method: "PUT", body: UpdateNameRequest(name: name), token: token)
     }
+
+    // MARK: - Private helpers
+
+    private func buildURLRequest(
+        _ endpoint: String,
+        method: String,
+        body: Encodable?,
+        token: String?
+    ) throws -> URLRequest {
+        guard let url = URL(string: baseURL + endpoint) else {
+            throw NetworkError.invalidURL
+        }
+        var req = URLRequest(url: url)
+        req.httpMethod = method
+        req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let token {
+            req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        if let body {
+            req.httpBody = try JSONEncoder().encode(body)
+        }
+        return req
+    }
+
+    private func decode<T: Decodable>(_ data: Data, statusCode: Int) throws -> T {
+        if !(200...299).contains(statusCode) {
+            if let apiError = try? JSONDecoder().decode(APIError.self, from: data) {
+                throw apiError
+            }
+            throw NetworkError.httpError(statusCode)
+        }
+        return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Обновляет оба токена через /auth/refresh, сохраняет в Keychain и уведомляет AuthState.
+    /// При ошибке — постит .forceSignOut.
+    private func performTokenRefresh() async throws -> TokenResponse {
+        guard let storedRefresh = KeychainService.shared.getRefreshToken() else {
+            NotificationCenter.default.post(name: .forceSignOut, object: nil)
+            throw NetworkError.unauthorized
+        }
+        do {
+            let tokens: TokenResponse = try await request(
+                "/auth/refresh", method: "POST",
+                body: RefreshRequest(refreshToken: storedRefresh)
+            )
+            KeychainService.shared.saveToken(tokens.accessToken)
+            KeychainService.shared.saveRefreshToken(tokens.refreshToken)
+            NotificationCenter.default.post(name: .tokenRefreshed, object: tokens.accessToken)
+            return tokens
+        } catch {
+            NotificationCenter.default.post(name: .forceSignOut, object: nil)
+            throw error
+        }
+    }
+}
+
+// MARK: - Notification Names
+
+extension Notification.Name {
+    /// APIService постит при успешном авто-обновлении токена. object = новый accessToken (String).
+    static let tokenRefreshed = Notification.Name("com.scentence.tokenRefreshed")
+    /// APIService постит когда refresh истёк/невалиден — нужно разлогинить.
+    static let forceSignOut   = Notification.Name("com.scentence.forceSignOut")
 }
 
 // MARK: - NetworkError
@@ -154,12 +221,14 @@ enum NetworkError: LocalizedError {
     case invalidURL
     case invalidResponse
     case httpError(Int)
+    case unauthorized
 
     var errorDescription: String? {
         switch self {
         case .invalidURL:         return "Неверный URL"
         case .invalidResponse:    return "Некорректный ответ сервера"
         case .httpError(let c):   return "Ошибка сервера: \(c)"
+        case .unauthorized:       return "Сессия истекла. Войдите снова."
         }
     }
 }

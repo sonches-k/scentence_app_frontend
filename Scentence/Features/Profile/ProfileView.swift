@@ -34,7 +34,9 @@ struct ProfileView: View {
             .glassNavBar()
             .tint(AppColor.accent)
             .alert("Выйти из аккаунта?", isPresented: $showSignOutAlert) {
-                Button("Выйти", role: .destructive) { authState.signOut() }
+                Button("Выйти", role: .destructive) {
+                    Task { await viewModel.signOut(authState: authState) }
+                }
                 Button("Отмена", role: .cancel) {}
             }
             .task {
