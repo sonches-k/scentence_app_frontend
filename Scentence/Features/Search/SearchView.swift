@@ -5,6 +5,7 @@ struct SearchView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = SearchViewModel()
     @State private var showResults = false
+    @State private var searchTask: Task<Void, Never>?
 
     var body: some View {
         NavigationStack {
@@ -43,9 +44,6 @@ struct SearchView: View {
             .navigationBarHidden(true)
             .sheet(isPresented: $viewModel.showFilters) {
                 FiltersView(viewModel: viewModel.filtersVM)
-            }
-            .task {
-                await viewModel.filtersVM.loadFilters(token: authState.token)
             }
             .navigationDestination(isPresented: $showResults) {
                 if let response = viewModel.searchResponse {
@@ -114,7 +112,7 @@ struct SearchView: View {
 
             Button {
                 hideKeyboard()
-                Task {
+                searchTask = Task {
                     await viewModel.search(token: authState.token)
                     if viewModel.searchResponse != nil {
                         showResults = true
@@ -128,7 +126,25 @@ struct SearchView: View {
             }
             .buttonStyle(PrimaryButtonStyle())
             .disabled(viewModel.isLoading || viewModel.queryText.trimmingCharacters(in: .whitespaces).count < 3)
+            .opacity(viewModel.isLoading ? 0.5 : 1.0)
+
+            if viewModel.isLoading {
+                Button {
+                    searchTask?.cancel()
+                    viewModel.cancelSearch()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "xmark.circle")
+                            .font(.system(size: 14))
+                        Text("Отменить")
+                            .font(AppFont.caption(14))
+                    }
+                    .foregroundColor(AppColor.textSecondary)
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
+        .animation(.easeInOut(duration: 0.22), value: viewModel.isLoading)
         .padding(.horizontal, 24)
     }
 

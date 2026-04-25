@@ -3,7 +3,6 @@ import OSLog
 
 // MARK: - APIServiceProtocol
 
-/// Протокол сетевого сервиса для Dependency Injection и тестирования.
 protocol APIServiceProtocol {
     func requestCode(email: String) async throws -> MessageResponse
     func verifyCode(email: String, code: String) async throws -> TokenResponse
@@ -12,10 +11,14 @@ protocol APIServiceProtocol {
     func getSimilar(perfumeId: Int, limit: Int, token: String?) async throws -> SimilarSearchResponse
     func getPerfume(id: Int, token: String?) async throws -> Perfume
     func getAllFilters(token: String?) async throws -> AllFiltersResponse
+    func suggestBrands(q: String, token: String?) async throws -> [String]
+    func suggestNotes(q: String, token: String?) async throws -> [String]
     func getFavorites(token: String) async throws -> [FavoritePerfume]
     func addFavorite(perfumeId: Int, token: String) async throws -> MessageResponse
     func removeFavorite(perfumeId: Int, token: String) async throws -> MessageResponse
     func getHistory(token: String) async throws -> [SearchHistoryEntry]
+    func deleteHistoryEntry(entryId: Int, token: String) async throws
+    func clearHistory(token: String) async throws
     func updateName(name: String, token: String) async throws -> User
     func refreshTokens(refreshToken: String) async throws -> TokenResponse
     func logout(refreshToken: String) async throws -> MessageResponse
@@ -34,10 +37,18 @@ final class APIService: APIServiceProtocol {
 
     private let logger = Logger(subsystem: "com.scentence", category: "API")
 
-    /// Таймаут 120 с из-за медленной генерации LLM на бэкенде
+    /// Таймаут 120 с — LLM на бэкенде может отвечать долго.
+    /// URLCache + useProtocolCachePolicy: GET /perfumes/filters отдаёт ETag,
+    /// при неизменных данных сервер возвращает 304 и тело не гоняется по сети.
     private let session: URLSession = {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 120
+        config.urlCache = URLCache(
+            memoryCapacity: 4 * 1024 * 1024,
+            diskCapacity: 20 * 1024 * 1024,
+            diskPath: "scentence_api_cache"
+        )
+        config.requestCachePolicy = .useProtocolCachePolicy
         return URLSession(configuration: config)
     }()
 
@@ -122,7 +133,17 @@ final class APIService: APIServiceProtocol {
     }
 
     func getAllFilters(token: String?) async throws -> AllFiltersResponse {
-        try await request("/perfumes/filters/all", token: token)
+        try await request("/perfumes/filters", token: token)
+    }
+
+    func suggestBrands(q: String = "", token: String? = nil) async throws -> [String] {
+        let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return try await request("/perfumes/brands/suggest?q=\(encoded)&limit=20", token: token)
+    }
+
+    func suggestNotes(q: String = "", token: String? = nil) async throws -> [String] {
+        let encoded = q.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        return try await request("/perfumes/notes/suggest?q=\(encoded)&limit=20", token: token)
     }
 
     // MARK: - Favorites
@@ -143,6 +164,14 @@ final class APIService: APIServiceProtocol {
 
     func getHistory(token: String) async throws -> [SearchHistoryEntry] {
         try await request("/users/history", token: token)
+    }
+
+    func deleteHistoryEntry(entryId: Int, token: String) async throws {
+        try await requestVoid("/users/history/\(entryId)", method: "DELETE", token: token)
+    }
+
+    func clearHistory(token: String) async throws {
+        try await requestVoid("/users/history", method: "DELETE", token: token)
     }
 
     func updateName(name: String, token: String) async throws -> User {
@@ -173,13 +202,41 @@ final class APIService: APIServiceProtocol {
     }
 
     private func decode<T: Decodable>(_ data: Data, statusCode: Int) throws -> T {
-        if !(200...299).contains(statusCode) {
-            if let apiError = try? JSONDecoder().decode(APIError.self, from: data) {
-                throw apiError
-            }
-            throw NetworkError.httpError(statusCode)
-        }
+        try verifyStatus(data, statusCode: statusCode)
         return try JSONDecoder().decode(T.self, from: data)
+    }
+
+    /// Для эндпоинтов, возвращающих 204 No Content (тело отсутствует).
+    private func requestVoid(_ endpoint: String, method: String, token: String?) async throws {
+        let urlRequest = try buildURLRequest(endpoint, method: method, body: nil, token: token)
+
+        #if DEBUG
+        logger.debug("→ \(method) \(endpoint)")
+        #endif
+
+        let (data, response) = try await session.data(for: urlRequest)
+        guard let http = response as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+
+        #if DEBUG
+        logger.debug("← \(http.statusCode) \(endpoint)")
+        #endif
+
+        if http.statusCode == 401 {
+            let newTokens = try await performTokenRefresh()
+            let retry = try buildURLRequest(endpoint, method: method, body: nil, token: newTokens.accessToken)
+            let (retryData, retryResponse) = try await session.data(for: retry)
+            guard let retryHttp = retryResponse as? HTTPURLResponse else { throw NetworkError.invalidResponse }
+            try verifyStatus(retryData, statusCode: retryHttp.statusCode)
+            return
+        }
+
+        try verifyStatus(data, statusCode: http.statusCode)
+    }
+
+    private func verifyStatus(_ data: Data, statusCode: Int) throws {
+        guard !(200...299).contains(statusCode) else { return }
+        if let apiError = try? JSONDecoder().decode(APIError.self, from: data) { throw apiError }
+        throw NetworkError.httpError(statusCode)
     }
 
     /// Обновляет оба токена через /auth/refresh, сохраняет в Keychain и уведомляет AuthState.
