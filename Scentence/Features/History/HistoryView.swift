@@ -5,6 +5,8 @@ struct HistoryView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = HistoryViewModel()
 
+    @State private var showClearConfirmation = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -28,12 +30,12 @@ struct HistoryView: View {
                     ScrollView {
                         LazyVStack(spacing: 8) {
                             ForEach(viewModel.history) { entry in
-                                Button {
+                                HistoryRow(entry: entry) {
                                     appState.repeatSearch(query: entry.query)
-                                } label: {
-                                    HistoryRow(entry: entry)
+                                } onDelete: {
+                                    guard let token = authState.token else { return }
+                                    Task { await viewModel.deleteEntry(id: entry.id, token: token) }
                                 }
-                                .buttonStyle(.plain)
                             }
                         }
                         .padding(.horizontal, 24)
@@ -45,6 +47,26 @@ struct HistoryView: View {
             .navigationBarTitleDisplayMode(.inline)
             .glassNavBar()
             .tint(AppColor.accent)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !viewModel.history.isEmpty {
+                        Button("Очистить всё") {
+                            showClearConfirmation = true
+                        }
+                        .font(AppFont.caption(14))
+                        .foregroundColor(AppColor.textSecondary)
+                    }
+                }
+            }
+            .alert("Очистить историю?", isPresented: $showClearConfirmation) {
+                Button("Очистить", role: .destructive) {
+                    guard let token = authState.token else { return }
+                    Task { await viewModel.clearAll(token: token) }
+                }
+                Button("Отмена", role: .cancel) {}
+            } message: {
+                Text("Все записи будут удалены без возможности восстановления.")
+            }
             .task {
                 guard let token = authState.token else { return }
                 await viewModel.load(token: token)
@@ -75,34 +97,58 @@ final class HistoryViewModel: ObservableObject {
         defer { isLoading = false }
         history = (try? await api.getHistory(token: token)) ?? []
     }
+
+    func deleteEntry(id: Int, token: String) async {
+        _ = try? await api.deleteHistoryEntry(entryId: id, token: token)
+        history.removeAll { $0.id == id }
+    }
+
+    func clearAll(token: String) async {
+        _ = try? await api.clearHistory(token: token)
+        history = []
+    }
 }
 
 // MARK: - HistoryRow
 
 struct HistoryRow: View {
     let entry: SearchHistoryEntry
+    let onRepeat: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: "arrow.counterclockwise")
-                .font(.system(size: 13))
-                .foregroundColor(AppColor.accent)
+            Button(action: onRepeat) {
+                HStack(spacing: 12) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 13))
+                        .foregroundColor(AppColor.accent)
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(entry.query)
-                    .font(AppFont.body(14))
-                    .foregroundColor(AppColor.textPrimary)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(entry.query)
+                            .font(AppFont.body(14))
+                            .foregroundColor(AppColor.textPrimary)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
 
-                if let date = entry.createdAt {
-                    Text(date.prefix(10))
-                        .font(AppFont.caption(11))
-                        .foregroundColor(AppColor.textMuted)
+                        if let date = entry.createdAt {
+                            Text(date.prefix(10))
+                                .font(AppFont.caption(11))
+                                .foregroundColor(AppColor.textMuted)
+                        }
+                    }
+
+                    Spacer()
                 }
             }
+            .buttonStyle(.plain)
 
-            Spacer()
+            Button(action: onDelete) {
+                Image(systemName: "trash")
+                    .foregroundColor(AppColor.textMuted)
+                    .font(.system(size: 16))
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

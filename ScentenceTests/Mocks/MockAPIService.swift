@@ -13,10 +13,14 @@ final class MockAPIService: APIServiceProtocol {
     var getSimilarResult: Result<SimilarSearchResponse, Error> = .failure(MockError.notConfigured)
     var getPerfumeResult: Result<Perfume, Error> = .failure(MockError.notConfigured)
     var getAllFiltersResult: Result<AllFiltersResponse, Error> = .failure(MockError.notConfigured)
+    var suggestBrandsResult: Result<[String], Error> = .success([])
+    var suggestNotesResult: Result<[String], Error> = .success([])
     var getFavoritesResult: Result<[FavoritePerfume], Error> = .failure(MockError.notConfigured)
     var addFavoriteResult: Result<MessageResponse, Error> = .failure(MockError.notConfigured)
     var removeFavoriteResult: Result<MessageResponse, Error> = .failure(MockError.notConfigured)
     var getHistoryResult: Result<[SearchHistoryEntry], Error> = .failure(MockError.notConfigured)
+    var deleteHistoryEntryResult: Result<Void, Error> = .success(())
+    var clearHistoryResult: Result<Void, Error> = .success(())
     var updateNameResult: Result<User, Error> = .failure(MockError.notConfigured)
     var refreshTokensResult: Result<TokenResponse, Error> = .failure(MockError.notConfigured)
     var logoutResult: Result<MessageResponse, Error> = .success(MessageResponse(message: "OK"))
@@ -75,6 +79,14 @@ final class MockAPIService: APIServiceProtocol {
         try getAllFiltersResult.get()
     }
 
+    func suggestBrands(q: String, token: String?) async throws -> [String] {
+        try suggestBrandsResult.get()
+    }
+
+    func suggestNotes(q: String, token: String?) async throws -> [String] {
+        try suggestNotesResult.get()
+    }
+
     func getFavorites(token: String) async throws -> [FavoritePerfume] {
         getFavoritesCallCount += 1
         return try getFavoritesResult.get()
@@ -92,6 +104,14 @@ final class MockAPIService: APIServiceProtocol {
 
     func getHistory(token: String) async throws -> [SearchHistoryEntry] {
         try getHistoryResult.get()
+    }
+
+    func deleteHistoryEntry(entryId: Int, token: String) async throws {
+        try deleteHistoryEntryResult.get()
+    }
+
+    func clearHistory(token: String) async throws {
+        try clearHistoryResult.get()
     }
 
     func updateName(name: String, token: String) async throws -> User {

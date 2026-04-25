@@ -90,16 +90,14 @@ struct SimilarSearchResponse: Decodable {
 
 // MARK: - AllFiltersResponse
 
-/// Все доступные значения фильтров (загружаются с сервера).
+/// Статические фильтры: пол, семейство, тип (без брендов и нот — они через /brands/suggest, /notes/suggest).
 struct AllFiltersResponse: Decodable {
     let genders: [String]
     let families: [String]
     let productTypes: [String]
-    let brands: [String]
-    let notes: [String]
 
     enum CodingKeys: String, CodingKey {
-        case genders, families, brands, notes
+        case genders, families
         case productTypes = "product_types"
     }
 }

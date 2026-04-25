@@ -18,6 +18,9 @@ final class SearchViewModel: ObservableObject {
     init(api: APIServiceProtocol = APIService.shared) {
         self.api = api
         self.filtersVM = FiltersViewModel(api: api)
+        // Фильтры не требуют авторизации — грузим сразу при создании VM.
+        // URLCache обеспечит 304 при повторных запросах.
+        Task { await self.filtersVM.loadFilters(token: nil) }
     }
 
     var hasResults: Bool { searchResponse != nil }
@@ -37,9 +40,16 @@ final class SearchViewModel: ObservableObject {
 
         do {
             searchResponse = try await api.search(request: request, token: token)
+        } catch is CancellationError {
+            // пользователь отменил запрос — не показываем ошибку
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+
+    func cancelSearch() {
+        isLoading = false
+        errorMessage = nil
     }
 
     func clear() {
