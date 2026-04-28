@@ -1,8 +1,11 @@
 import SwiftUI
 
+// MARK: - RemoteImage
+
 struct RemoteImage: View {
     let url: URL
-    var maxHeight: CGFloat = 280
+    var maxHeight: CGFloat = 260
+    var horizontalPadding: CGFloat = 24
 
     @State private var image: UIImage?
     @State private var isFailed = false
@@ -11,79 +14,50 @@ struct RemoteImage: View {
     var body: some View {
         Group {
             if let image {
-                Image(uiImage: image)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxHeight: maxHeight)
-                    .mask(
-                        ZStack {
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .black.opacity(0.7), location: 0),
-                                    .init(color: .black, location: 0.08),
-                                    .init(color: .black, location: 0.80),
-                                    .init(color: .clear,              location: 1),
-                                ],
-                                startPoint: .top, endPoint: .bottom
-                            )
-                            LinearGradient(
-                                stops: [
-                                    .init(color: .clear, location: 0),
-                                    .init(color: .black, location: 0.12),
-                                    .init(color: .black, location: 0.88),
-                                    .init(color: .clear, location: 1),
-                                ],
-                                startPoint: .leading, endPoint: .trailing
-                            )
-                            .blendMode(.multiply)
-                        }
-                    )
+                imageContainer {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .padding(16)
+                }
             } else if isFailed {
-                VStack(spacing: 8) {
+                imageContainer {
                     Image(systemName: "photo")
-                        .font(.system(size: 28, weight: .thin))
+                        .font(.system(size: 32, weight: .thin))
                         .foregroundColor(AppColor.textMuted)
                 }
-                .frame(height: 160)
-                .frame(maxWidth: .infinity)
-                .background(AppColor.cardBorder.opacity(0.2))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
             } else {
-                ProgressView()
-                    .tint(AppColor.surface)
-                    .frame(height: 200)
+                imageContainer {
+                    ProgressView()
+                        .tint(AppColor.textMuted)
+                }
             }
         }
+        .padding(.horizontal, horizontalPadding)
         .frame(maxWidth: .infinity)
-        .task(id: url) {
-            await loadImage()
-        }
+        .task(id: url) { await loadImage() }
     }
 
-    // MARK: - Edge-fade mask (reused in preview)
-    static func edgeFadeMask() -> some View {
+    // MARK: - Styled container
+
+    @ViewBuilder
+    private func imageContainer<C: View>(@ViewBuilder content: () -> C) -> some View {
         ZStack {
-            LinearGradient(
-                stops: [
-                    .init(color: .black.opacity(0.7), location: 0),
-                    .init(color: .black, location: 0.08),
-                    .init(color: .black, location: 0.80),
-                    .init(color: .clear,              location: 1),
-                ],
-                startPoint: .top, endPoint: .bottom
-            )
-            LinearGradient(
-                stops: [
-                    .init(color: .clear, location: 0),
-                    .init(color: .black, location: 0.12),
-                    .init(color: .black, location: 0.88),
-                    .init(color: .clear, location: 1),
-                ],
-                startPoint: .leading, endPoint: .trailing
-            )
-            .blendMode(.multiply)
+            Color.white
+            content()
         }
+        .frame(maxWidth: .infinity)
+        .frame(height: maxHeight)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(AppColor.accent.opacity(0.55), lineWidth: 1.5)
+        )
+        .shadow(color: AppColor.accent.opacity(0.28), radius: 12, x: 0, y: 0)
+        .shadow(color: AppColor.accent.opacity(0.10), radius: 28, x: 0, y: 6)
     }
+
+    // MARK: - Load
 
     private func loadImage() async {
         isLoading = true
@@ -93,10 +67,9 @@ struct RemoteImage: View {
         do {
             var request = URLRequest(url: url)
             request.timeoutInterval = 30
-
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 30
-        let session = URLSession(configuration: config)
+            let config = URLSessionConfiguration.default
+            config.timeoutIntervalForRequest = 30
+            let session = URLSession(configuration: config)
 
             let (data, response) = try await session.data(for: request)
 
@@ -117,45 +90,97 @@ struct RemoteImage: View {
     }
 }
 
-// MARK: - Preview
+// MARK: - Previews
 
-#Preview("Edge fade – Light") {
+#Preview("Загружено – светлая тема") {
     ZStack {
         AppBackground()
-        VStack(spacing: 0) {
-            // Имитация фото флакона: цветной прямоугольник с градиентом
-            LinearGradient(
-                colors: [AppColor.accentLight, AppColor.accent.opacity(0.6)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .frame(height: 280)
-            .mask(RemoteImage.edgeFadeMask())
+        VStack(spacing: 24) {
+            styledContainer(height: 260, horizontalPadding: 24) {
+                VStack(spacing: 8) {
+                    Image(systemName: "flame")
+                        .font(.system(size: 56, weight: .thin))
+                        .foregroundColor(AppColor.accent.opacity(0.6))
+                    Text("Chanel No.5")
+                        .font(AppFont.title(15))
+                        .foregroundColor(AppColor.textMuted)
+                }
+            }
 
-            Text("Chanel No.5")
-                .font(AppFont.display(26))
+            Text("CHANEL")
+                .font(AppFont.caption(11))
+                .foregroundColor(AppColor.accent)
+                .tracking(2)
+
+            Text("No.5 Eau de Parfum")
+                .font(AppFont.title(22))
                 .foregroundColor(AppColor.textPrimary)
-                .padding(.top, 16)
         }
+        .padding(.horizontal, 24)
     }
     .preferredColorScheme(.light)
 }
 
-#Preview("Edge fade – Dark") {
+#Preview("Загружено – тёмная тема") {
     ZStack {
         AppBackground()
-        VStack(spacing: 0) {
-            LinearGradient(
-                colors: [AppColor.accentLight, AppColor.accent.opacity(0.6)],
-                startPoint: .topLeading, endPoint: .bottomTrailing
-            )
-            .frame(height: 280)
-            .mask(RemoteImage.edgeFadeMask())
+        VStack(spacing: 24) {
+            styledContainer(height: 260, horizontalPadding: 24) {
+                VStack(spacing: 8) {
+                    Image(systemName: "flame")
+                        .font(.system(size: 56, weight: .thin))
+                        .foregroundColor(AppColor.accent.opacity(0.6))
+                    Text("Tom Ford Noir")
+                        .font(AppFont.title(15))
+                        .foregroundColor(AppColor.textMuted)
+                }
+            }
 
-            Text("Chanel No.5")
-                .font(AppFont.display(26))
+            Text("TOM FORD")
+                .font(AppFont.caption(11))
+                .foregroundColor(AppColor.accent)
+                .tracking(2)
+
+            Text("Noir Eau de Parfum")
+                .font(AppFont.title(22))
                 .foregroundColor(AppColor.textPrimary)
-                .padding(.top, 16)
         }
+        .padding(.horizontal, 24)
     }
     .preferredColorScheme(.dark)
+}
+
+#Preview("Ошибка загрузки") {
+    ZStack {
+        AppBackground()
+        styledContainer(height: 260, horizontalPadding: 24) {
+            Image(systemName: "photo")
+                .font(.system(size: 32, weight: .thin))
+                .foregroundColor(AppColor.textMuted)
+        }
+        .padding(.horizontal, 32)
+    }
+    .preferredColorScheme(.light)
+}
+
+@ViewBuilder
+private func styledContainer<C: View>(
+    height: CGFloat,
+    horizontalPadding: CGFloat,
+    @ViewBuilder content: () -> C
+) -> some View {
+    ZStack {
+        Color.white
+        content()
+    }
+    .frame(maxWidth: .infinity)
+    .frame(height: height)
+    .clipShape(RoundedRectangle(cornerRadius: 20))
+    .overlay(
+        RoundedRectangle(cornerRadius: 20)
+            .stroke(AppColor.accent.opacity(0.55), lineWidth: 1.5)
+    )
+    .shadow(color: AppColor.accent.opacity(0.28), radius: 12, x: 0, y: 0)
+    .shadow(color: AppColor.accent.opacity(0.10), radius: 28, x: 0, y: 6)
+    .padding(.horizontal, horizontalPadding)
 }

@@ -1,4 +1,5 @@
 import SwiftUI
+import Translation
 
 struct SearchView: View {
     @EnvironmentObject var authState: AuthState
@@ -6,6 +7,7 @@ struct SearchView: View {
     @StateObject private var viewModel = SearchViewModel()
     @State private var showResults = false
     @State private var searchTask: Task<Void, Never>?
+    @State private var showQueryTranslation = false
 
     var body: some View {
         NavigationStack {
@@ -29,6 +31,11 @@ struct SearchView: View {
                                 .padding(.horizontal, 24)
                         }
 
+                        if let aiError = viewModel.aiError {
+                            ErrorLabel(text: aiError)
+                                .padding(.horizontal, 24)
+                        }
+
                         if viewModel.isLoading {
                             BreathingSearchLoader()
                                 .padding(.top, 16)
@@ -47,18 +54,49 @@ struct SearchView: View {
             }
             .navigationDestination(isPresented: $showResults) {
                 if let response = viewModel.searchResponse {
-                    ResultsView(response: response, query: viewModel.queryText)
+                    ResultsView(
+                        response: response,
+                        query: viewModel.queryText,
+                        activeProvider: viewModel.activeProvider,
+                        filterChips: viewModel.filtersVM.activeFilterChips
+                    )
                 }
+            }
+            .onChange(of: appState.selectedTab) { _, tab in
+                // Возврат на вкладку Поиск всегда открывает главный экран, а не результаты.
+                if tab == .search { showResults = false }
             }
             .onChange(of: appState.pendingSearchQuery) { _, query in
                 guard let query, !query.isEmpty else { return }
+                showResults = false
+
+                // Применяем фильтры ДО запуска поиска — pendingFilters и pendingSearchQuery
+                // всегда устанавливаются вместе в repeatSearch(), поэтому читаем здесь.
+                viewModel.filtersVM.apply(from: appState.pendingFilters)
+                appState.pendingFilters = nil
+
                 viewModel.queryText = query
                 appState.pendingSearchQuery = nil
+
+                // Автоматически запускаем поиск — результат придёт из URLCache мгновенно.
+                searchTask?.cancel()
+                searchTask = Task {
+                    await viewModel.search(token: authState.token, llmProvider: appState.llmProvider)
+                    if viewModel.searchResponse != nil {
+                        showResults = true
+                    }
+                }
             }
         }
     }
 
     // MARK: - Search Input
+
+    private var queryPlaceholder: String {
+        appState.llmProvider == .appleIntelligence
+            ? "Describe the desired fragrance in English..."
+            : "Опишите желаемый аромат..."
+    }
 
     private var searchInputSection: some View {
         VStack(spacing: 12) {
@@ -74,14 +112,23 @@ struct SearchView: View {
                     .padding(.trailing, 44)
                     .background(.ultraThinMaterial)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .toolbar {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button("Готово") { hideKeyboard() }
+                                .font(AppFont.body(16))
+                                .foregroundColor(AppColor.accent)
+                        }
+                    }
                     .overlay(
                         Group {
                             if viewModel.queryText.isEmpty {
-                                Text("Опишите желаемый аромат...")
+                                Text(queryPlaceholder)
                                     .font(AppFont.body(16))
                                     .foregroundColor(AppColor.textMuted)
-                                    .padding(.horizontal, 20)
-                                    .padding(.top, 14)
+                                    // Компенсируем внутренний отступ UITextView (~5pt гориз, ~8pt верт)
+                                    .padding(.horizontal, 21)
+                                    .padding(.top, 20)
                                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                                     .allowsHitTesting(false)
                             }
@@ -110,10 +157,46 @@ struct SearchView: View {
                 }
             }
 
+            if appState.llmProvider == .appleIntelligence {
+                HStack(alignment: .top, spacing: 8) {
+                    HStack(spacing: 5) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 11))
+                        Text("Apple Intelligence лучше работает с запросами на английском.")
+                            .font(AppFont.caption(12))
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .foregroundColor(AppColor.textMuted)
+
+                    Spacer(minLength: 0)
+
+                    if #available(iOS 17.4, *) {
+                        Button {
+                            showQueryTranslation = true
+                        } label: {
+                            HStack(spacing: 3) {
+                                Image(systemName: "translate")
+                                    .font(.system(size: 11))
+                                Text("Перевести")
+                                    .font(AppFont.caption(12))
+                            }
+                            .foregroundColor(AppColor.accent)
+                        }
+                    }
+                }
+                .applyTranslationIfAvailable(
+                    isPresented: $showQueryTranslation,
+                    text: viewModel.queryText
+                ) { translated in
+                    viewModel.queryText = translated
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
             Button {
                 hideKeyboard()
                 searchTask = Task {
-                    await viewModel.search(token: authState.token)
+                    await viewModel.search(token: authState.token, llmProvider: appState.llmProvider)
                     if viewModel.searchResponse != nil {
                         showResults = true
                     }
@@ -145,6 +228,7 @@ struct SearchView: View {
             }
         }
         .animation(.easeInOut(duration: 0.22), value: viewModel.isLoading)
+        .animation(.easeInOut(duration: 0.2), value: appState.llmProvider)
         .padding(.horizontal, 24)
     }
 
@@ -249,10 +333,26 @@ struct SearchView: View {
                 showResults = true
             } label: {
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text("Найдено \(response.totalFound) аромат(ов)")
                             .font(AppFont.body(15))
                             .foregroundColor(AppColor.textPrimary)
+
+                        let chips = viewModel.filtersVM.activeFilterChips
+                        if !chips.isEmpty {
+                            Text(chips.joined(separator: " · "))
+                                .font(AppFont.caption(11))
+                                .foregroundColor(AppColor.accent.opacity(0.8))
+                                .lineLimit(1)
+                        }
+
+                        HStack(spacing: 4) {
+                            Image(systemName: viewModel.activeProvider == .appleIntelligence ? "apple.intelligence" : "sparkle")
+                                .font(.system(size: 10))
+                            Text(viewModel.activeProvider == .appleIntelligence ? "Apple Intelligence" : "DeepSeek")
+                                .font(AppFont.caption(11))
+                        }
+                        .foregroundColor(AppColor.textMuted)
                         Text("Нажмите, чтобы открыть")
                             .font(AppFont.caption(12))
                             .foregroundColor(AppColor.textMuted)

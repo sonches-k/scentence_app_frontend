@@ -51,6 +51,7 @@ final class SearchModelsTests: XCTestCase {
             genders: ["male"],
             families: nil,
             productTypes: nil,
+            categories: nil,
             brands: nil,
             notes: nil,
             yearFrom: 2000,
@@ -74,7 +75,7 @@ final class SearchModelsTests: XCTestCase {
     func test_search_filters_empty() {
         let filters = SearchFilters(
             genders: nil, families: nil, productTypes: nil,
-            brands: nil, notes: nil, yearFrom: nil, yearTo: nil
+            categories: nil, brands: nil, notes: nil, yearFrom: nil, yearTo: nil
         )
         XCTAssertTrue(filters.isEmpty)
         XCTAssertEqual(filters.activeCount, 0)
@@ -85,6 +86,7 @@ final class SearchModelsTests: XCTestCase {
             genders: ["male"],
             families: ["Woody", "Oriental"],
             productTypes: nil,
+            categories: nil,
             brands: nil,
             notes: nil,
             yearFrom: 2010,

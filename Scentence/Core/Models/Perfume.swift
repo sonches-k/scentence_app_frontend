@@ -2,7 +2,6 @@ import Foundation
 
 // MARK: - Perfume
 
-/// Полная модель аромата, соответствует ответу `/perfumes/{id}`.
 struct Perfume: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
@@ -11,7 +10,9 @@ struct Perfume: Codable, Identifiable, Hashable {
     let productType: String?
     let family: String?
     let gender: String?
+    let category: String?
     let description: String?
+    let reviewSummary: String?
     let imageUrl: String?
     let sourceUrl: String?
     let notes: [PerfumeNote]
@@ -20,12 +21,13 @@ struct Perfume: Codable, Identifiable, Hashable {
     let updatedAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id, name, brand, year, family, gender, description, notes, tags
-        case productType = "product_type"
-        case imageUrl    = "image_url"
-        case sourceUrl   = "source_url"
-        case createdAt   = "created_at"
-        case updatedAt   = "updated_at"
+        case id, name, brand, year, family, gender, category, description, notes, tags
+        case productType  = "product_type"
+        case reviewSummary = "review_summary"
+        case imageUrl     = "image_url"
+        case sourceUrl    = "source_url"
+        case createdAt    = "created_at"
+        case updatedAt    = "updated_at"
     }
 
     var notePyramid: NotePyramid {
@@ -44,13 +46,11 @@ struct Perfume: Codable, Identifiable, Hashable {
 
 // MARK: - PerfumeNote / Note
 
-/// Связь аромата с нотой определённого уровня (top / middle / base).
 struct PerfumeNote: Codable, Hashable {
     let note: Note
     let level: String
 }
 
-/// Парфюмерная нота (ингредиент аромата).
 struct Note: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
@@ -59,7 +59,6 @@ struct Note: Codable, Identifiable, Hashable {
 
 // MARK: - PerfumeTag
 
-/// Тег аромата с уровнем уверенности (генерируется LLM).
 struct PerfumeTag: Codable, Hashable {
     let tag: String
     let confidence: Double?
@@ -68,7 +67,6 @@ struct PerfumeTag: Codable, Hashable {
 
 // MARK: - NotePyramid
 
-/// Пирамида нот аромата: верхние, сердечные и базовые ноты.
 struct NotePyramid: Codable, Hashable {
     let top: [String]
     let middle: [String]
@@ -80,7 +78,6 @@ struct NotePyramid: Codable, Hashable {
 
 // MARK: - PerfumeWithRelevance
 
-/// Аромат из результатов поиска с оценкой релевантности (0...1).
 struct PerfumeWithRelevance: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
@@ -89,18 +86,21 @@ struct PerfumeWithRelevance: Codable, Identifiable, Hashable {
     let sourceUrl: String?
     let family: String?
     let gender: String?
+    let category: String?
+    let reviewSummary: String?
     let topNotes: [String]
     let middleNotes: [String]
     let baseNotes: [String]
     let relevance: Double
 
     enum CodingKeys: String, CodingKey {
-        case id, name, brand, family, gender, relevance
-        case imageUrl    = "image_url"
-        case sourceUrl   = "source_url"
-        case topNotes    = "top_notes"
-        case middleNotes = "middle_notes"
-        case baseNotes   = "base_notes"
+        case id, name, brand, family, gender, category, relevance
+        case reviewSummary = "review_summary"
+        case imageUrl      = "image_url"
+        case sourceUrl     = "source_url"
+        case topNotes      = "top_notes"
+        case middleNotes   = "middle_notes"
+        case baseNotes     = "base_notes"
     }
 
     var notePyramid: NotePyramid {
@@ -114,7 +114,9 @@ struct PerfumeWithRelevance: Codable, Identifiable, Hashable {
         Perfume(
             id: id, name: name, brand: brand, year: nil,
             productType: nil, family: family, gender: gender,
-            description: nil, imageUrl: imageUrl, sourceUrl: sourceUrl,
+            category: category, description: nil,
+            reviewSummary: reviewSummary,
+            imageUrl: imageUrl, sourceUrl: sourceUrl,
             notes: [], tags: [], createdAt: nil, updatedAt: nil
         )
     }
@@ -125,7 +127,6 @@ struct PerfumeWithRelevance: Codable, Identifiable, Hashable {
 
 // MARK: - FavoritePerfume
 
-/// Аромат из списка избранного пользователя.
 struct FavoritePerfume: Codable, Identifiable, Hashable {
     let id: Int
     let name: String
@@ -134,17 +135,20 @@ struct FavoritePerfume: Codable, Identifiable, Hashable {
     let sourceUrl: String?
     let family: String?
     let gender: String?
+    let category: String?
+    let reviewSummary: String?
     let topNotes: [String]
     let middleNotes: [String]
     let baseNotes: [String]
 
     enum CodingKeys: String, CodingKey {
-        case id, name, brand, family, gender
-        case imageUrl    = "image_url"
-        case sourceUrl   = "source_url"
-        case topNotes    = "top_notes"
-        case middleNotes = "middle_notes"
-        case baseNotes   = "base_notes"
+        case id, name, brand, family, gender, category
+        case reviewSummary = "review_summary"
+        case imageUrl      = "image_url"
+        case sourceUrl     = "source_url"
+        case topNotes      = "top_notes"
+        case middleNotes   = "middle_notes"
+        case baseNotes     = "base_notes"
     }
 
     static func == (lhs: FavoritePerfume, rhs: FavoritePerfume) -> Bool { lhs.id == rhs.id }

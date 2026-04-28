@@ -1,7 +1,6 @@
 import SwiftUI
 
 // MARK: - BreathingSearchLoader
-// Pulsing glass circle with radiating ripple rings — used during perfume search
 
 struct BreathingSearchLoader: View {
     var message: String = "Подбираем ароматы..."
@@ -14,16 +13,10 @@ struct BreathingSearchLoader: View {
     var body: some View {
         VStack(spacing: 36) {
             ZStack {
-                // Ripple ring 0 (first to radiate)
                 rippleRing(active: ring0)
-
-                // Ripple ring 1 (0.7s offset)
                 rippleRing(active: ring1)
-
-                // Ripple ring 2 (1.4s offset)
                 rippleRing(active: ring2)
 
-                // Main breathing circle
                 Circle()
                     .fill(.ultraThinMaterial)
                     .overlay(Circle().fill(AppColor.accent.opacity(0.14)))
@@ -43,7 +36,6 @@ struct BreathingSearchLoader: View {
                     .scaleEffect(breathe ? 1.12 : 0.90)
                     .animation(.easeInOut(duration: 1.9).repeatForever(autoreverses: true), value: breathe)
 
-                // Center icon
                 Image(systemName: "sparkles")
                     .font(.system(size: 26, weight: .thin))
                     .foregroundColor(AppColor.accent)
@@ -53,7 +45,6 @@ struct BreathingSearchLoader: View {
             }
             .onAppear {
                 breathe = true
-                // Stagger ripples 0.7 s apart
                 startRipple(delay: 0.0) { ring0 = $0 }
                 startRipple(delay: 0.7) { ring1 = $0 }
                 startRipple(delay: 1.4) { ring2 = $0 }
@@ -96,7 +87,7 @@ struct BreathingSearchLoader: View {
     }
 }
 
-// MARK: - Generic LoadingView (used in Favorites / History tabs)
+// MARK: - LoadingView
 
 struct LoadingView: View {
     var message: String = "Загрузка..."

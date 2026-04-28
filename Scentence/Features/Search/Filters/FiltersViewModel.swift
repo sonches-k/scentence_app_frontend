@@ -8,6 +8,7 @@ final class FiltersViewModel: ObservableObject {
     @Published var availableGenders: [String] = []
     @Published var availableFamilies: [String] = []
     @Published var availableProductTypes: [String] = []
+    @Published var availableCategories: [String] = []
 
     // MARK: - Suggest state (brands)
 
@@ -30,14 +31,13 @@ final class FiltersViewModel: ObservableObject {
     @Published var selectedGenders: Set<String> = []
     @Published var selectedFamilies: Set<String> = []
     @Published var selectedProductTypes: Set<String> = []
+    @Published var selectedCategories: Set<String> = []
     @Published var selectedBrands: Set<String> = []
     @Published var selectedNotes: Set<String> = []
     @Published var yearFrom: String = ""
     @Published var yearTo: String = ""
 
     @Published var isLoading: Bool = false
-
-    // MARK: - Private
 
     private let api: APIServiceProtocol
     private var brandSearchTask: Task<Void, Never>?
@@ -48,17 +48,30 @@ final class FiltersViewModel: ObservableObject {
         self.api = api
     }
 
-    // MARK: - Computed
-
     var activeCount: Int {
         var c = 0
         if !selectedGenders.isEmpty      { c += 1 }
         if !selectedFamilies.isEmpty     { c += 1 }
         if !selectedProductTypes.isEmpty { c += 1 }
+        if !selectedCategories.isEmpty   { c += 1 }
         if !selectedBrands.isEmpty       { c += 1 }
         if !selectedNotes.isEmpty        { c += 1 }
         if !yearFrom.isEmpty || !yearTo.isEmpty { c += 1 }
         return c
+    }
+
+    var activeFilterChips: [String] {
+        var chips: [String] = []
+        chips += selectedGenders.sorted()
+        chips += selectedFamilies.sorted()
+        chips += selectedProductTypes.sorted()
+        chips += selectedCategories.sorted()
+        chips += selectedBrands.sorted().prefix(2)
+        chips += selectedNotes.sorted().prefix(2)
+        if !yearFrom.isEmpty, !yearTo.isEmpty { chips.append("\(yearFrom)–\(yearTo)") }
+        else if !yearFrom.isEmpty { chips.append("от \(yearFrom)") }
+        else if !yearTo.isEmpty   { chips.append("до \(yearTo)") }
+        return chips
     }
 
     // MARK: - Load
@@ -77,6 +90,7 @@ final class FiltersViewModel: ObservableObject {
             availableGenders      = filters.genders
             availableFamilies     = filters.families
             availableProductTypes = filters.productTypes
+            availableCategories   = Self.sortedCategories(filters.categories)
             brandSuggestions      = brands
             noteSuggestions       = notes
         } catch {
@@ -130,6 +144,7 @@ final class FiltersViewModel: ObservableObject {
         selectedGenders      = []
         selectedFamilies     = []
         selectedProductTypes = []
+        selectedCategories   = []
         selectedBrands       = []
         selectedNotes        = []
         yearFrom             = ""
@@ -140,15 +155,28 @@ final class FiltersViewModel: ObservableObject {
 
     func buildFilters() -> SearchFilters? {
         let filters = SearchFilters(
-            genders:      selectedGenders.isEmpty      ? nil : Array(selectedGenders),
-            families:     selectedFamilies.isEmpty     ? nil : Array(selectedFamilies),
-            productTypes: selectedProductTypes.isEmpty ? nil : Array(selectedProductTypes),
-            brands:       selectedBrands.isEmpty       ? nil : Array(selectedBrands),
-            notes:        selectedNotes.isEmpty        ? nil : Array(selectedNotes),
+            genders:      selectedGenders.isEmpty      ? nil : Array(selectedGenders).sorted(),
+            families:     selectedFamilies.isEmpty     ? nil : Array(selectedFamilies).sorted(),
+            productTypes: selectedProductTypes.isEmpty ? nil : Array(selectedProductTypes).sorted(),
+            categories:   selectedCategories.isEmpty   ? nil : Array(selectedCategories).sorted(),
+            brands:       selectedBrands.isEmpty       ? nil : Array(selectedBrands).sorted(),
+            notes:        selectedNotes.isEmpty        ? nil : Array(selectedNotes).sorted(),
             yearFrom:     Int(yearFrom),
             yearTo:       Int(yearTo)
         )
         return filters.isEmpty ? nil : filters
+    }
+
+    // MARK: - Helpers
+
+    /// Сортирует категории по популярности; неизвестные — в конец по алфавиту.
+    private static func sortedCategories(_ categories: [String]) -> [String] {
+        let order = ["Люкс", "Нишевая", "Восточная", "Масляная"]
+        return categories.sorted { a, b in
+            let ia = order.firstIndex(of: a) ?? Int.max
+            let ib = order.firstIndex(of: b) ?? Int.max
+            return ia == ib ? a < b : ia < ib
+        }
     }
 
     func apply(from existing: SearchFilters?) {
@@ -156,6 +184,7 @@ final class FiltersViewModel: ObservableObject {
         selectedGenders      = Set(f.genders ?? [])
         selectedFamilies     = Set(f.families ?? [])
         selectedProductTypes = Set(f.productTypes ?? [])
+        selectedCategories   = Set(f.categories ?? [])
         selectedBrands       = Set(f.brands ?? [])
         selectedNotes        = Set(f.notes ?? [])
         yearFrom = f.yearFrom.map { String($0) } ?? ""

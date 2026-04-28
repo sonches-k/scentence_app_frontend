@@ -30,7 +30,11 @@ final class APIService: APIServiceProtocol {
     static let shared = APIService()
 
     #if DEBUG
-    private let baseURL = "http://localhost:8000/api/v1"
+    // Локальный IP задаётся через переменную окружения схемы Xcode — не попадает в репо.
+    // Product → Scheme → Edit Scheme → Run → Arguments → Environment Variables
+    // Добавь: API_BASE_URL = http://192.168.x.x:8000/api/v1
+    private let baseURL: String = ProcessInfo.processInfo.environment["API_BASE_URL"]
+        ?? "http://localhost:8000/api/v1"
     #else
     private let baseURL = "https://api.scentence.app/api/v1"
     #endif
@@ -206,7 +210,6 @@ final class APIService: APIServiceProtocol {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
-    /// Для эндпоинтов, возвращающих 204 No Content (тело отсутствует).
     private func requestVoid(_ endpoint: String, method: String, token: String?) async throws {
         let urlRequest = try buildURLRequest(endpoint, method: method, body: nil, token: token)
 
@@ -239,8 +242,6 @@ final class APIService: APIServiceProtocol {
         throw NetworkError.httpError(statusCode)
     }
 
-    /// Обновляет оба токена через /auth/refresh, сохраняет в Keychain и уведомляет AuthState.
-    /// При ошибке — постит .forceSignOut.
     private func performTokenRefresh() async throws -> TokenResponse {
         guard let storedRefresh = KeychainService.shared.getRefreshToken() else {
             NotificationCenter.default.post(name: .forceSignOut, object: nil)
@@ -273,7 +274,6 @@ extension Notification.Name {
 
 // MARK: - NetworkError
 
-/// Ошибки сетевого уровня (до разбора ответа бэкенда).
 enum NetworkError: LocalizedError {
     case invalidURL
     case invalidResponse
@@ -282,10 +282,17 @@ enum NetworkError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .invalidURL:         return "Неверный URL"
-        case .invalidResponse:    return "Некорректный ответ сервера"
-        case .httpError(let c):   return "Ошибка сервера: \(c)"
-        case .unauthorized:       return "Сессия истекла. Войдите снова."
+        case .invalidURL:       return "Неверный URL"
+        case .invalidResponse:  return "Некорректный ответ сервера"
+        case .unauthorized:     return "Сессия истекла. Войдите снова."
+        case .httpError(let c):
+            switch c {
+            case 404: return "Не найдено"
+            case 422: return "Некорректный запрос"
+            case 504: return "Сервер не успел ответить. Попробуйте ещё раз."
+            case 500...599: return "Ошибка сервера. Попробуйте позже."
+            default:  return "Ошибка сервера: \(c)"
+            }
         }
     }
 }

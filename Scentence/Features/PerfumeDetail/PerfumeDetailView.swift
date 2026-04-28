@@ -43,8 +43,6 @@ struct PerfumeDetailView: View {
         }
     }
 
-    // MARK: - Content
-
     @ViewBuilder
     private func content(_ perfume: Perfume) -> some View {
         ScrollView {
@@ -223,7 +221,7 @@ struct PerfumeDetailView: View {
                 .padding(.horizontal, 24)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     ForEach(viewModel.similarPerfumes) { similar in
                         NavigationLink {
                             PerfumeDetailView(perfumeId: similar.id)
@@ -234,6 +232,7 @@ struct PerfumeDetailView: View {
                     }
                 }
                 .padding(.horizontal, 24)
+                .padding(.vertical, 10)
             }
         }
     }
@@ -270,6 +269,13 @@ struct SimilarCard: View {
         }
         .padding(14)
         .frame(width: 140, height: 130)
-        .cardStyle()
+        .background(.ultraThinMaterial)
+        .background(AppColor.accent.opacity(0.06))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(AppColor.accent.opacity(0.35), lineWidth: 1.0)
+        )
+        .shadow(color: AppColor.accent.opacity(0.18), radius: 8, x: 0, y: 3)
     }
 }

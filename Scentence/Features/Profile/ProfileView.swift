@@ -6,6 +6,7 @@ struct ProfileView: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var viewModel = ProfileViewModel()
     @State private var showSignOutAlert = false
+    @State private var showAIInfoAlert = false
 
     @State private var photoItem: PhotosPickerItem?
     @State private var profileImage: UIImage?
@@ -183,6 +184,10 @@ struct ProfileView: View {
                     .tint(AppColor.accent)
             }
 
+            if #available(iOS 26, *) {
+                aiModelRow
+            }
+
             Button {
                 showSignOutAlert = true
             } label: {
@@ -199,6 +204,58 @@ struct ProfileView: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 24)
+        .alert("Apple Intelligence", isPresented: $showAIInfoAlert) {
+            Button("Открыть Настройки") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Понятно", role: .cancel) {}
+        } message: {
+            Text("""
+            Для работы Apple Intelligence необходимо:
+            • Включить Apple Intelligence & Siri в Настройках
+            • Установить язык устройства и Siri на английский
+
+            Обратите внимание: пирамида нот и описание подборки будут на английском языке.
+            """)
+        }
+    }
+
+    private var aiModelRow: some View {
+        settingsRow(
+            icon: "cpu.fill",
+            iconColor: Color(hex: "#8B9DE8"),
+            title: "AI-генерация"
+        ) {
+            Menu {
+                ForEach(LLMProvider.allCases, id: \.rawValue) { provider in
+                    Button {
+                        appState.llmProvider = provider
+                        if provider == .appleIntelligence {
+                            showAIInfoAlert = true
+                        }
+                    } label: {
+                        HStack {
+                            Text(provider.displayName)
+                            if appState.llmProvider == provider {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Text(appState.llmProvider.displayName)
+                        .font(AppFont.caption(14))
+                        .foregroundColor(AppColor.textMuted)
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 11))
+                        .foregroundColor(AppColor.textMuted)
+                }
+            }
+            .tint(AppColor.textMuted)
+        }
     }
 
     private func settingsRow<Trailing: View>(

@@ -34,6 +34,14 @@ struct FiltersView: View {
                         )
                         AccentDivider().padding(.horizontal)
 
+                        filterSection(
+                            "Категория",
+                            info: "Люкс — ароматы крупных престижных домов (Chanel, Dior, YSL). Нишевая — авторские и редкие марки. Восточная — традиционная арабская парфюмерия. Масляная — концентрированные духи без спирта.",
+                            options: viewModel.availableCategories,
+                            selected: $viewModel.selectedCategories
+                        )
+                        AccentDivider().padding(.horizontal)
+
                         suggestFilterSection(
                             "Бренд",
                             suggestions: viewModel.brandSuggestions,
@@ -45,7 +53,7 @@ struct FiltersView: View {
 
                         suggestFilterSection(
                             "Ноты",
-                            info: "Ингредиенты аромата. Верхние — первое впечатление, сердечные — основа, базовые — шлейф.",
+                            info: "Ингредиенты аромата. Верхние — старт композиции, средние — ядро аромата, базовые — шлейфовое звучание.",
                             suggestions: viewModel.noteSuggestions,
                             isLoading: viewModel.isNoteLoading,
                             selected: $viewModel.selectedNotes,
@@ -148,6 +156,7 @@ struct FiltersView: View {
                         }
                     }
                     .padding(.horizontal, 24)
+                    .padding(.vertical, 6)
                 }
             }
         }
@@ -301,6 +310,7 @@ struct FiltersView: View {
                 }
             }
             .padding(.horizontal, 24)
+            .padding(.vertical, 6)
         }
     }
 

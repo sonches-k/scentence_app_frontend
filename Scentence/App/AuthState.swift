@@ -30,8 +30,6 @@ final class AuthState: ObservableObject {
         NotificationCenter.default.removeObserver(self)
     }
 
-    // MARK: - Actions
-
     func signIn(token: String, refreshToken: String, user: User? = nil) {
         KeychainService.shared.saveToken(token)
         KeychainService.shared.saveRefreshToken(refreshToken)
@@ -52,8 +50,6 @@ final class AuthState: ObservableObject {
     func updateUser(_ user: User) {
         currentUser = user
     }
-
-    // MARK: - Notification handlers
 
     @objc private func handleForceSignOut() {
         DispatchQueue.main.async { self.signOut() }

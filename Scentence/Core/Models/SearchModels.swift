@@ -2,7 +2,6 @@ import Foundation
 
 // MARK: - SearchRequest
 
-/// Запрос поиска ароматов по текстовому описанию с фильтрами.
 struct SearchRequest: Encodable {
     let query: String
     let filters: SearchFilters?
@@ -17,18 +16,18 @@ struct SearchRequest: Encodable {
 
 // MARK: - SearchFilters
 
-/// Набор фильтров для сужения поисковой выдачи.
-struct SearchFilters: Encodable {
+struct SearchFilters: Encodable, Equatable {
     var genders: [String]?
     var families: [String]?
     var productTypes: [String]?
+    var categories: [String]?
     var brands: [String]?
     var notes: [String]?
     var yearFrom: Int?
     var yearTo: Int?
 
     enum CodingKeys: String, CodingKey {
-        case genders, families, brands, notes
+        case genders, families, brands, notes, categories
         case productTypes = "product_types"
         case yearFrom     = "year_from"
         case yearTo       = "year_to"
@@ -38,6 +37,7 @@ struct SearchFilters: Encodable {
         (genders?.isEmpty ?? true) &&
         (families?.isEmpty ?? true) &&
         (productTypes?.isEmpty ?? true) &&
+        (categories?.isEmpty ?? true) &&
         (brands?.isEmpty ?? true) &&
         (notes?.isEmpty ?? true) &&
         yearFrom == nil &&
@@ -49,6 +49,7 @@ struct SearchFilters: Encodable {
         if let g = genders, !g.isEmpty { count += 1 }
         if let f = families, !f.isEmpty { count += 1 }
         if let p = productTypes, !p.isEmpty { count += 1 }
+        if let c = categories, !c.isEmpty { count += 1 }
         if let b = brands, !b.isEmpty { count += 1 }
         if let n = notes, !n.isEmpty { count += 1 }
         if yearFrom != nil || yearTo != nil { count += 1 }
@@ -58,7 +59,6 @@ struct SearchFilters: Encodable {
 
 // MARK: - SearchResponse
 
-/// Ответ сервера на поисковый запрос: найденные ароматы, пирамида нот и пояснение.
 struct SearchResponse: Decodable {
     let query: String
     let notePyramid: NotePyramid
@@ -77,7 +77,6 @@ struct SearchResponse: Decodable {
 
 // MARK: - SimilarSearchResponse
 
-/// Ответ на запрос похожих ароматов для заданного парфюма.
 struct SimilarSearchResponse: Decodable {
     let sourcePerfumeId: Int
     let similarPerfumes: [PerfumeWithRelevance]
@@ -88,6 +87,19 @@ struct SimilarSearchResponse: Decodable {
     }
 }
 
+extension SearchResponse {
+    func replacing(notePyramid: NotePyramid, explanation: String) -> SearchResponse {
+        SearchResponse(
+            query: query,
+            notePyramid: notePyramid,
+            explanation: explanation,
+            perfumes: perfumes,
+            filtersApplied: filtersApplied,
+            totalFound: totalFound
+        )
+    }
+}
+
 // MARK: - AllFiltersResponse
 
 /// Статические фильтры: пол, семейство, тип (без брендов и нот — они через /brands/suggest, /notes/suggest).
@@ -95,16 +107,37 @@ struct AllFiltersResponse: Decodable {
     let genders: [String]
     let families: [String]
     let productTypes: [String]
+    let categories: [String]
 
     enum CodingKeys: String, CodingKey {
-        case genders, families
+        case genders, families, categories
         case productTypes = "product_types"
+    }
+}
+
+// MARK: - LLMProvider
+
+enum LLMProvider: String, CaseIterable {
+    case deepseek        = "deepseek"
+    case appleIntelligence = "apple"
+
+    var displayName: String {
+        switch self {
+        case .deepseek:         return "DeepSeek"
+        case .appleIntelligence: return "Apple Intelligence"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .deepseek:         return "cpu"
+        case .appleIntelligence: return "apple.logo"
+        }
     }
 }
 
 // MARK: - AnyCodable
 
-/// Обёртка для произвольных JSON-значений (используется в `filtersApplied`).
 struct AnyCodable: Codable {
     let value: Any
 

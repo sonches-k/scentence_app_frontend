@@ -9,8 +9,6 @@ final class KeychainService {
 
     private init() {}
 
-    // MARK: - Access Token
-
     func saveToken(_ token: String) {
         save(token, forKey: accessTokenKey)
     }
@@ -23,8 +21,6 @@ final class KeychainService {
     func deleteToken() -> Bool {
         delete(forKey: accessTokenKey)
     }
-
-    // MARK: - Refresh Token
 
     func saveRefreshToken(_ token: String) {
         save(token, forKey: refreshTokenKey)
@@ -39,14 +35,10 @@ final class KeychainService {
         delete(forKey: refreshTokenKey)
     }
 
-    // MARK: - Convenience
-
     func deleteAllTokens() {
         deleteToken()
         deleteRefreshToken()
     }
-
-    // MARK: - Private helpers
 
     private func save(_ value: String, forKey key: String) {
         guard let data = value.data(using: .utf8) else { return }

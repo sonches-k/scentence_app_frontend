@@ -3,8 +3,6 @@ import UIKit
 
 @MainActor
 final class AuthViewModel: ObservableObject {
-    // MARK: - State
-
     enum Step { case email, code }
 
     @Published var step: Step = .email
@@ -22,8 +20,6 @@ final class AuthViewModel: ObservableObject {
     init(api: APIServiceProtocol = APIService.shared) {
         self.api = api
     }
-
-    // MARK: - Actions
 
     func requestCode() async {
         guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {

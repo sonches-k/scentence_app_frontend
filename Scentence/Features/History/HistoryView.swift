@@ -31,7 +31,10 @@ struct HistoryView: View {
                         LazyVStack(spacing: 8) {
                             ForEach(viewModel.history) { entry in
                                 HistoryRow(entry: entry) {
-                                    appState.repeatSearch(query: entry.query)
+                                    appState.repeatSearch(
+                                        query: entry.query,
+                                        filters: entry.parsedFilters
+                                    )
                                 } onDelete: {
                                     guard let token = authState.token else { return }
                                     Task { await viewModel.deleteEntry(id: entry.id, token: token) }
@@ -79,36 +82,6 @@ struct HistoryView: View {
     }
 }
 
-// MARK: - HistoryViewModel
-
-@MainActor
-final class HistoryViewModel: ObservableObject {
-    @Published var history: [SearchHistoryEntry] = []
-    @Published var isLoading = false
-
-    private let api: APIServiceProtocol
-
-    init(api: APIServiceProtocol = APIService.shared) {
-        self.api = api
-    }
-
-    func load(token: String) async {
-        isLoading = true
-        defer { isLoading = false }
-        history = (try? await api.getHistory(token: token)) ?? []
-    }
-
-    func deleteEntry(id: Int, token: String) async {
-        _ = try? await api.deleteHistoryEntry(entryId: id, token: token)
-        history.removeAll { $0.id == id }
-    }
-
-    func clearAll(token: String) async {
-        _ = try? await api.clearHistory(token: token)
-        history = []
-    }
-}
-
 // MARK: - HistoryRow
 
 struct HistoryRow: View {
@@ -124,12 +97,19 @@ struct HistoryRow: View {
                         .font(.system(size: 13))
                         .foregroundColor(AppColor.accent)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(entry.query)
                             .font(AppFont.body(14))
                             .foregroundColor(AppColor.textPrimary)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
+
+                        if !entry.filterChips.isEmpty {
+                            Text(entry.filterChips.joined(separator: " · "))
+                                .font(AppFont.caption(11))
+                                .foregroundColor(AppColor.accent.opacity(0.8))
+                                .lineLimit(1)
+                        }
 
                         if let date = entry.createdAt {
                             Text(date.prefix(10))

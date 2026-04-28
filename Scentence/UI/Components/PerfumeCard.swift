@@ -2,6 +2,7 @@ import SwiftUI
 
 struct PerfumeCard: View {
     let perfume: PerfumeWithRelevance
+    @State private var summaryExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -54,10 +55,44 @@ struct PerfumeCard: View {
                 }
             }
             .frame(height: 3)
+
+            if let summary = perfume.reviewSummary, !summary.isEmpty {
+                Divider().overlay(AppColor.cardBorder.opacity(0.4))
+
+                Button {
+                    withAnimation(.easeInOut(duration: 0.22)) {
+                        summaryExpanded.toggle()
+                    }
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(summaryExpanded ? "Скрыть" : "Подробнее")
+                            .font(AppFont.caption(11))
+                            .foregroundColor(AppColor.accent)
+                        Spacer()
+                        Image(systemName: summaryExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(AppColor.accent)
+                    }
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if summaryExpanded {
+                    Text(summary)
+                        .font(AppFont.caption(12))
+                        .foregroundColor(AppColor.textSecondary)
+                        .lineLimit(nil)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
         }
         .padding(16)
         .cardStyle()
         .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(.easeInOut(duration: 0.22), value: summaryExpanded)
     }
 }
 
