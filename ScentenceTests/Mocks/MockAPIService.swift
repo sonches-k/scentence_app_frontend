@@ -32,6 +32,9 @@ final class MockAPIService: APIServiceProtocol {
     var getFavoritesCallCount = 0
     var addFavoriteCallCount = 0
     var removeFavoriteCallCount = 0
+    var getHistoryCallCount = 0
+    var deleteHistoryEntryCallCount = 0
+    var clearHistoryCallCount = 0
 
     // MARK: - MockError
 
@@ -103,14 +106,17 @@ final class MockAPIService: APIServiceProtocol {
     }
 
     func getHistory(token: String) async throws -> [SearchHistoryEntry] {
-        try getHistoryResult.get()
+        getHistoryCallCount += 1
+        return try getHistoryResult.get()
     }
 
     func deleteHistoryEntry(entryId: Int, token: String) async throws {
+        deleteHistoryEntryCallCount += 1
         try deleteHistoryEntryResult.get()
     }
 
     func clearHistory(token: String) async throws {
+        clearHistoryCallCount += 1
         try clearHistoryResult.get()
     }
 

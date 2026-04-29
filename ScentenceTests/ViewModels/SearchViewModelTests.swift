@@ -14,6 +14,7 @@ final class SearchViewModelTests: XCTestCase {
                     id: 1, name: "Test", brand: "Brand",
                     imageUrl: nil, sourceUrl: nil,
                     family: "Woody", gender: "unisex",
+                    category: nil, reviewSummary: nil,
                     topNotes: ["Бергамот"], middleNotes: [],
                     baseNotes: ["Мускус"], relevance: 0.85
                 )
@@ -31,7 +32,7 @@ final class SearchViewModelTests: XCTestCase {
 
         let vm = SearchViewModel(api: mock)
         vm.queryText = "тёплый аромат"
-        await vm.search(token: nil)
+        await vm.search(token: nil, llmProvider: .deepseek)
 
         XCTAssertNotNil(vm.searchResponse)
         XCTAssertEqual(vm.searchResponse?.perfumes.count, 1)
@@ -46,7 +47,7 @@ final class SearchViewModelTests: XCTestCase {
 
         let vm = SearchViewModel(api: mock)
         vm.queryText = "тёплый аромат"
-        await vm.search(token: nil)
+        await vm.search(token: nil, llmProvider: .deepseek)
 
         XCTAssertNil(vm.searchResponse)
         XCTAssertNotNil(vm.errorMessage)
@@ -61,12 +62,12 @@ final class SearchViewModelTests: XCTestCase {
 
         // Первый вызов — ошибка
         mock.searchResult = .failure(MockAPIService.MockError.testError)
-        await vm.search(token: nil)
+        await vm.search(token: nil, llmProvider: .deepseek)
         XCTAssertNotNil(vm.errorMessage)
 
         // Второй вызов — успех
         mock.searchResult = .success(makeResponse())
-        await vm.search(token: nil)
+        await vm.search(token: nil, llmProvider: .deepseek)
         XCTAssertNil(vm.errorMessage)
         XCTAssertNotNil(vm.searchResponse)
     }
@@ -76,7 +77,7 @@ final class SearchViewModelTests: XCTestCase {
         let vm = SearchViewModel(api: mock)
         vm.queryText = "ab"
 
-        await vm.search(token: nil)
+        await vm.search(token: nil, llmProvider: .deepseek)
 
         XCTAssertNotNil(vm.errorMessage)
         XCTAssertEqual(mock.searchCallCount, 0)

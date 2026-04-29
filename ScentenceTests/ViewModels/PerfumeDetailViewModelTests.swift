@@ -9,7 +9,8 @@ final class PerfumeDetailViewModelTests: XCTestCase {
             id: id, name: "Sauvage", brand: "Dior",
             year: 2015, productType: "EDP",
             family: "Aromatic", gender: "male",
-            description: "Bold fragrance.",
+            category: nil, description: "Bold fragrance.",
+            reviewSummary: nil,
             imageUrl: nil, sourceUrl: nil,
             notes: [], tags: [],
             createdAt: nil, updatedAt: nil
@@ -75,6 +76,7 @@ final class PerfumeDetailViewModelTests: XCTestCase {
                 id: 42, name: "Sauvage", brand: "Dior",
                 imageUrl: nil, sourceUrl: nil,
                 family: "Aromatic", gender: "male",
+                category: nil, reviewSummary: nil,
                 topNotes: [], middleNotes: [], baseNotes: []
             )
         ])

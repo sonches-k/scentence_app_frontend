@@ -53,6 +53,12 @@
 		8A000000000000000000AA22 /* SearchModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA12 /* SearchModelsTests.swift */; };
 		8A000000000000000000AA23 /* PerfumeDetailViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA13 /* PerfumeDetailViewModelTests.swift */; };
 		8A000000000000000000AA24 /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA14 /* SearchViewModelTests.swift */; };
+		8A000000000000000000AA25 /* UserModelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA15 /* UserModelsTests.swift */; };
+		8A000000000000000000AA26 /* AuthViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA16 /* AuthViewModelTests.swift */; };
+		8A000000000000000000AA27 /* FavoritesViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA17 /* FavoritesViewModelTests.swift */; };
+		8A000000000000000000AA28 /* FiltersViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA18 /* FiltersViewModelTests.swift */; };
+		8A000000000000000000AA29 /* HistoryViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA19 /* HistoryViewModelTests.swift */; };
+		8A000000000000000000AA2A /* ProfileViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8A000000000000000000AA1A /* ProfileViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -114,6 +120,12 @@
 		8A000000000000000000AA12 /* SearchModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchModelsTests.swift; sourceTree = "<group>"; };
 		8A000000000000000000AA13 /* PerfumeDetailViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfumeDetailViewModelTests.swift; sourceTree = "<group>"; };
 		8A000000000000000000AA14 /* SearchViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModelTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA15 /* UserModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserModelsTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA16 /* AuthViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModelTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA17 /* FavoritesViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesViewModelTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA18 /* FiltersViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiltersViewModelTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA19 /* HistoryViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModelTests.swift; sourceTree = "<group>"; };
+		8A000000000000000000AA1A /* ProfileViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -364,6 +376,7 @@
 			children = (
 				8A000000000000000000AA11 /* PerfumeTests.swift */,
 				8A000000000000000000AA12 /* SearchModelsTests.swift */,
+				8A000000000000000000AA15 /* UserModelsTests.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -373,6 +386,11 @@
 			children = (
 				8A000000000000000000AA13 /* PerfumeDetailViewModelTests.swift */,
 				8A000000000000000000AA14 /* SearchViewModelTests.swift */,
+				8A000000000000000000AA16 /* AuthViewModelTests.swift */,
+				8A000000000000000000AA17 /* FavoritesViewModelTests.swift */,
+				8A000000000000000000AA18 /* FiltersViewModelTests.swift */,
+				8A000000000000000000AA19 /* HistoryViewModelTests.swift */,
+				8A000000000000000000AA1A /* ProfileViewModelTests.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -512,6 +530,12 @@
 				8A000000000000000000AA22 /* SearchModelsTests.swift in Sources */,
 				8A000000000000000000AA23 /* PerfumeDetailViewModelTests.swift in Sources */,
 				8A000000000000000000AA24 /* SearchViewModelTests.swift in Sources */,
+				8A000000000000000000AA25 /* UserModelsTests.swift in Sources */,
+				8A000000000000000000AA26 /* AuthViewModelTests.swift in Sources */,
+				8A000000000000000000AA27 /* FavoritesViewModelTests.swift in Sources */,
+				8A000000000000000000AA28 /* FiltersViewModelTests.swift in Sources */,
+				8A000000000000000000AA29 /* HistoryViewModelTests.swift in Sources */,
+				8A000000000000000000AA2A /* ProfileViewModelTests.swift in Sources */,
 			);
 		};
 /* End PBXSourcesBuildPhase section */

@@ -118,10 +118,9 @@ final class SearchModelsTests: XCTestCase {
         let json = """
         {
             "genders": ["male", "female", "unisex"],
-            "families": ["Woody"],
+            "families": ["Woody", "Oriental"],
             "product_types": ["EDP", "EDT"],
-            "brands": ["Dior"],
-            "notes": ["Bergamot", "Vanilla"]
+            "categories": ["Люкс", "Нишевая"]
         }
         """.data(using: .utf8)!
 
@@ -129,5 +128,7 @@ final class SearchModelsTests: XCTestCase {
 
         XCTAssertEqual(response.genders.count, 3)
         XCTAssertEqual(response.productTypes, ["EDP", "EDT"])
+        XCTAssertEqual(response.categories, ["Люкс", "Нишевая"])
+        XCTAssertEqual(response.families, ["Woody", "Oriental"])
     }
 }
