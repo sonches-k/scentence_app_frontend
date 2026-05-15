@@ -121,8 +121,7 @@ final class UserModelsTests: XCTestCase {
         XCTAssertTrue(chips.contains("Dior"))
         XCTAssertTrue(chips.contains("Chanel"))
         XCTAssertFalse(chips.contains("Guerlain"))
-        // Год в формате "от–до"
-        XCTAssertTrue(chips.contains("2015–2023"))
+        XCTAssertTrue(chips.contains("2015–2023 г."))
     }
 
     func test_filter_chips_only_year_from() throws {
@@ -131,7 +130,7 @@ final class UserModelsTests: XCTestCase {
         """.data(using: .utf8)!
 
         let entry = try JSONDecoder().decode(SearchHistoryEntry.self, from: json)
-        XCTAssertTrue(entry.filterChips.contains("от 2000"))
+        XCTAssertTrue(entry.filterChips.contains("от 2000 г."))
     }
 
     func test_filter_chips_empty_when_no_filters() throws {

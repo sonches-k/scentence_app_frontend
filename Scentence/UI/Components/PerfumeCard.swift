@@ -59,11 +59,7 @@ struct PerfumeCard: View {
             if let summary = perfume.reviewSummary, !summary.isEmpty {
                 Divider().overlay(AppColor.cardBorder.opacity(0.4))
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.22)) {
-                        summaryExpanded.toggle()
-                    }
-                } label: {
+                Button { summaryExpanded.toggle() } label: {
                     HStack(spacing: 4) {
                         Text(summaryExpanded ? "Скрыть" : "Подробнее")
                             .font(AppFont.caption(11))
@@ -73,6 +69,7 @@ struct PerfumeCard: View {
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(AppColor.accent)
                     }
+                    .animation(.easeInOut(duration: 0.2), value: summaryExpanded)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                 }
@@ -85,14 +82,14 @@ struct PerfumeCard: View {
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 6)
                 }
             }
         }
         .padding(16)
         .cardStyle()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .animation(.easeInOut(duration: 0.22), value: summaryExpanded)
     }
 }
 

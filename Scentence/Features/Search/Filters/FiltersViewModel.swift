@@ -38,6 +38,7 @@ final class FiltersViewModel: ObservableObject {
     @Published var yearTo: String = ""
 
     @Published var isLoading: Bool = false
+    @Published var filterError: String?
 
     private let api: APIServiceProtocol
     private var brandSearchTask: Task<Void, Never>?
@@ -68,9 +69,9 @@ final class FiltersViewModel: ObservableObject {
         chips += selectedCategories.sorted()
         chips += selectedBrands.sorted().prefix(2)
         chips += selectedNotes.sorted().prefix(2)
-        if !yearFrom.isEmpty, !yearTo.isEmpty { chips.append("\(yearFrom)–\(yearTo)") }
-        else if !yearFrom.isEmpty { chips.append("от \(yearFrom)") }
-        else if !yearTo.isEmpty   { chips.append("до \(yearTo)") }
+        if !yearFrom.isEmpty, !yearTo.isEmpty { chips.append("\(yearFrom)–\(yearTo) г.") }
+        else if !yearFrom.isEmpty { chips.append("от \(yearFrom) г.") }
+        else if !yearTo.isEmpty   { chips.append("до \(yearTo) г.") }
         return chips
     }
 
@@ -78,6 +79,7 @@ final class FiltersViewModel: ObservableObject {
 
     func loadFilters(token: String?) async {
         self.token = token
+        filterError = nil
         isLoading = true
         defer { isLoading = false }
         do {
@@ -94,7 +96,7 @@ final class FiltersViewModel: ObservableObject {
             brandSuggestions      = brands
             noteSuggestions       = notes
         } catch {
-            // Fail silently — фильтры просто не покажут варианты
+            filterError = "Не удалось загрузить фильтры"
         }
     }
 
@@ -123,9 +125,7 @@ final class FiltersViewModel: ObservableObject {
         defer { isBrandLoading = false }
         do {
             brandSuggestions = try await api.suggestBrands(q: q, token: token)
-        } catch {
-            // Оставляем предыдущие результаты при ошибке сети
-        }
+        } catch {}
     }
 
     private func fetchNoteSuggestions(q: String) async {
@@ -133,9 +133,17 @@ final class FiltersViewModel: ObservableObject {
         defer { isNoteLoading = false }
         do {
             noteSuggestions = try await api.suggestNotes(q: q, token: token)
-        } catch {
-            // Оставляем предыдущие результаты при ошибке сети
-        }
+        } catch {}
+    }
+
+    func retryLoadFilters() async {
+        await loadFilters(token: token)
+    }
+
+    func sanitizeYear(_ value: String) -> String {
+        let digits = String(value.filter { $0.isNumber }.prefix(4))
+        guard digits.count == 4, let year = Int(digits) else { return digits }
+        return String(min(max(year, 1900), 2030))
     }
 
     // MARK: - Reset / Apply / Build
@@ -154,6 +162,12 @@ final class FiltersViewModel: ObservableObject {
     }
 
     func buildFilters() -> SearchFilters? {
+        if let f = Int(yearFrom), let t = Int(yearTo), f > t {
+            swap(&yearFrom, &yearTo)
+        }
+        let from = Int(yearFrom)
+        let to = Int(yearTo)
+
         let filters = SearchFilters(
             genders:      selectedGenders.isEmpty      ? nil : Array(selectedGenders).sorted(),
             families:     selectedFamilies.isEmpty     ? nil : Array(selectedFamilies).sorted(),
@@ -161,8 +175,8 @@ final class FiltersViewModel: ObservableObject {
             categories:   selectedCategories.isEmpty   ? nil : Array(selectedCategories).sorted(),
             brands:       selectedBrands.isEmpty       ? nil : Array(selectedBrands).sorted(),
             notes:        selectedNotes.isEmpty        ? nil : Array(selectedNotes).sorted(),
-            yearFrom:     Int(yearFrom),
-            yearTo:       Int(yearTo)
+            yearFrom:     from,
+            yearTo:       to
         )
         return filters.isEmpty ? nil : filters
     }

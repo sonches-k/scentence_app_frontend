@@ -12,7 +12,9 @@ struct ResultsView: View {
     @State private var showTranslation = false
     @State private var shareImage: UIImage?
     @State private var showShareSheet = false
+    @State private var showRenderError = false
     @State private var isRendering = false
+    @State private var selectedPerfumeId: Int?
 
     var body: some View {
         ZStack {
@@ -37,8 +39,8 @@ struct ResultsView: View {
 
                     VStack(spacing: 12) {
                         ForEach(response.perfumes) { perfume in
-                            NavigationLink {
-                                PerfumeDetailView(perfumeId: perfume.id)
+                            Button {
+                                selectedPerfumeId = perfume.id
                             } label: {
                                 PerfumeCard(perfume: perfume)
                             }
@@ -78,6 +80,12 @@ struct ResultsView: View {
                 ActivitySheet(image: img).ignoresSafeArea()
             }
         }
+        .alert("Не удалось создать карточку", isPresented: $showRenderError) {
+            Button("OK", role: .cancel) {}
+        }
+        .navigationDestination(item: $selectedPerfumeId) { id in
+            PerfumeDetailView(perfumeId: id)
+        }
     }
 
     // MARK: - Share
@@ -105,6 +113,8 @@ struct ResultsView: View {
         if let img = renderer.uiImage {
             shareImage = img
             showShareSheet = true
+        } else {
+            showRenderError = true
         }
     }
 

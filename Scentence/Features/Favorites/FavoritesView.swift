@@ -3,6 +3,7 @@ import SwiftUI
 struct FavoritesView: View {
     @EnvironmentObject var authState: AuthState
     @StateObject private var viewModel = FavoritesViewModel()
+    @State private var selectedPerfumeId: Int?
 
     var body: some View {
         NavigationStack {
@@ -17,6 +18,12 @@ struct FavoritesView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 16)
                     }
+                } else if viewModel.errorMessage != nil {
+                    EmptyStateView(
+                        icon: "wifi.slash",
+                        title: "Не удалось загрузить",
+                        subtitle: "Потяните вниз чтобы обновить"
+                    )
                 } else if viewModel.favorites.isEmpty {
                     EmptyStateView(
                         icon: "heart",
@@ -25,17 +32,16 @@ struct FavoritesView: View {
                     )
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        VStack(spacing: 12) {
                             ForEach(viewModel.favorites) { perfume in
-                                NavigationLink {
-                                    PerfumeDetailView(perfumeId: perfume.id)
-                                } label: {
-                                    FavoritePerfumeRow(perfume: perfume) {
+                                FavoritePerfumeRow(
+                                    perfume: perfume,
+                                    onTap: { selectedPerfumeId = perfume.id },
+                                    onRemove: {
                                         guard let token = authState.token else { return }
                                         Task { await viewModel.removeFavorite(perfumeId: perfume.id, token: token) }
                                     }
-                                }
-                                .buttonStyle(.plain)
+                                )
                             }
                         }
                         .padding(.horizontal, 24)
@@ -47,6 +53,9 @@ struct FavoritesView: View {
             .navigationBarTitleDisplayMode(.inline)
             .glassNavBar()
             .tint(AppColor.accent)
+            .navigationDestination(item: $selectedPerfumeId) { id in
+                PerfumeDetailView(perfumeId: id)
+            }
             .task {
                 guard let token = authState.token else { return }
                 await viewModel.load(token: token)
@@ -63,42 +72,49 @@ struct FavoritesView: View {
 
 struct FavoritePerfumeRow: View {
     let perfume: FavoritePerfume
+    let onTap: () -> Void
     let onRemove: () -> Void
     @State private var summaryExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                if let urlStr = perfume.imageUrl, let url = URL(string: urlStr) {
-                    AsyncImage(url: url) { phase in
-                        switch phase {
-                        case .success(let image):
-                            image.resizable().aspectRatio(contentMode: .fill)
-                        default:
-                            RoundedRectangle(cornerRadius: 8).fill(AppColor.cardBorder.opacity(0.4))
+                Button { onTap() } label: {
+                    HStack(spacing: 12) {
+                        if let urlStr = perfume.imageUrl, let url = URL(string: urlStr) {
+                            AsyncImage(url: url) { phase in
+                                switch phase {
+                                case .success(let image):
+                                    image.resizable().aspectRatio(contentMode: .fill)
+                                default:
+                                    RoundedRectangle(cornerRadius: 8).fill(AppColor.cardBorder.opacity(0.4))
+                                }
+                            }
+                            .frame(width: 48, height: 48)
+                            .clipShape(RoundedRectangle(cornerRadius: 8))
                         }
-                    }
-                    .frame(width: 48, height: 48)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(perfume.brand.uppercased())
-                        .font(AppFont.caption(9))
-                        .foregroundColor(AppColor.accent)
-                        .tracking(2)
-                    Text(perfume.name)
-                        .font(AppFont.body(16))
-                        .foregroundColor(AppColor.textPrimary)
-                        .lineLimit(1)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(perfume.brand.uppercased())
+                                .font(AppFont.caption(9))
+                                .foregroundColor(AppColor.accent)
+                                .tracking(2)
+                            Text(perfume.name)
+                                .font(AppFont.body(16))
+                                .foregroundColor(AppColor.textPrimary)
+                                .lineLimit(1)
 
-                    if let family = perfume.family {
-                        Text(family)
-                            .font(AppFont.caption(12))
-                            .foregroundColor(AppColor.textMuted)
+                            if let family = perfume.family {
+                                Text(family)
+                                    .font(AppFont.caption(12))
+                                    .foregroundColor(AppColor.textMuted)
+                            }
+                        }
+                        Spacer()
                     }
                 }
-                Spacer()
+                .buttonStyle(.plain)
+
                 Button { onRemove() } label: {
                     Image(systemName: "heart.slash")
                         .foregroundColor(AppColor.textMuted)
@@ -111,11 +127,7 @@ struct FavoritePerfumeRow: View {
                     .overlay(AppColor.cardBorder.opacity(0.4))
                     .padding(.top, 10)
 
-                Button {
-                    withAnimation(.easeInOut(duration: 0.22)) {
-                        summaryExpanded.toggle()
-                    }
-                } label: {
+                Button { summaryExpanded.toggle() } label: {
                     HStack(spacing: 4) {
                         Text(summaryExpanded ? "Скрыть" : "Подробнее")
                             .font(AppFont.caption(11))
@@ -125,6 +137,7 @@ struct FavoritePerfumeRow: View {
                             .font(.system(size: 10, weight: .medium))
                             .foregroundColor(AppColor.accent)
                     }
+                    .animation(.easeInOut(duration: 0.2), value: summaryExpanded)
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                 }
@@ -138,13 +151,12 @@ struct FavoritePerfumeRow: View {
                         .lineLimit(nil)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.top, 6)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
         }
         .padding(14)
         .cardStyle()
-        .animation(.easeInOut(duration: 0.22), value: summaryExpanded)
     }
 }

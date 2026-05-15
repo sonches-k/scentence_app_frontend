@@ -21,9 +21,19 @@ final class AuthViewModel: ObservableObject {
         self.api = api
     }
 
+    private func isValidEmail(_ email: String) -> Bool {
+        let regex = #"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: regex, options: .regularExpression) != nil
+    }
+
     func requestCode() async {
-        guard !email.trimmingCharacters(in: .whitespaces).isEmpty else {
+        let trimmed = email.trimmingCharacters(in: .whitespaces).lowercased()
+        guard !trimmed.isEmpty else {
             errorMessage = "Введите email"
+            return
+        }
+        guard isValidEmail(trimmed) else {
+            errorMessage = "Проверьте формат email"
             return
         }
         isLoading = true
@@ -31,7 +41,7 @@ final class AuthViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let _ = try await api.requestCode(email: email.lowercased().trimmingCharacters(in: .whitespaces))
+            let _ = try await api.requestCode(email: trimmed)
             successMessage = "Код отправлен на \(email)"
             step = .code
             startResendTimer()

@@ -20,6 +20,12 @@ struct HistoryView: View {
                         .padding(.horizontal, 24)
                         .padding(.vertical, 16)
                     }
+                } else if viewModel.errorMessage != nil {
+                    EmptyStateView(
+                        icon: "wifi.slash",
+                        title: "Не удалось загрузить",
+                        subtitle: "Потяните вниз чтобы обновить"
+                    )
                 } else if viewModel.history.isEmpty {
                     EmptyStateView(
                         icon: "clock",

@@ -276,7 +276,7 @@ struct SearchView: View {
                         .onChange(of: viewModel.limitText) { _, val in
                             let filtered = val.filter { $0.isNumber }
                             if filtered != val { viewModel.limitText = filtered }
-                            if let n = Int(filtered), n > 50 { viewModel.limitText = "50" }
+                            if let n = Int(filtered), n > 20 { viewModel.limitText = "20" }
                         }
                     Text("ароматов")
                         .font(AppFont.caption(13))
@@ -304,7 +304,7 @@ struct SearchView: View {
                 .padding(.horizontal, 24)
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     ForEach(SearchSuggestion.examples, id: \.self) { suggestion in
                         Button {
                             viewModel.queryText = suggestion
@@ -319,6 +319,7 @@ struct SearchView: View {
                     }
                 }
                 .padding(.horizontal, 24)
+                .padding(.vertical, 8)
             }
         }
         .padding(.top, 8)

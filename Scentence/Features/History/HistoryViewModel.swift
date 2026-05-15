@@ -4,6 +4,7 @@ import Foundation
 final class HistoryViewModel: ObservableObject {
     @Published var history: [SearchHistoryEntry] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
     private let api: APIServiceProtocol
 
@@ -13,8 +14,13 @@ final class HistoryViewModel: ObservableObject {
 
     func load(token: String) async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
-        history = (try? await api.getHistory(token: token)) ?? []
+        do {
+            history = try await api.getHistory(token: token)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func deleteEntry(id: Int, token: String) async {

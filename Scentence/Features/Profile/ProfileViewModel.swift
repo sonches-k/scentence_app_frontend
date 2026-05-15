@@ -31,7 +31,10 @@ final class ProfileViewModel: ObservableObject {
 
     func updateName(token: String) async -> User? {
         let name = newName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { return nil }
+        guard name.count >= 2 else {
+            errorMessage = "Имя должно содержать хотя бы 2 символа"
+            return nil
+        }
         do {
             let user = try await api.updateName(name: name, token: token)
             isEditingName = false

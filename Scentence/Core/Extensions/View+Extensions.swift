@@ -6,9 +6,14 @@ import Translation
 extension View {
     func cardStyle() -> some View {
         self
-            .background(.ultraThinMaterial)
-            .background(AppColor.accent.opacity(0.06))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(.ultraThinMaterial)
+            )
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(AppColor.accent.opacity(0.06))
+            )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(

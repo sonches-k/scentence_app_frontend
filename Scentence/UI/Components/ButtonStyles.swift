@@ -1,7 +1,6 @@
 import SwiftUI
 
 // MARK: - PrimaryButtonStyle
-// Light: navy gradient; Dark: rose gradient
 
 struct PrimaryButtonStyle: ButtonStyle {
     @Environment(\.colorScheme) private var scheme

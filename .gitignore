@@ -52,5 +52,10 @@ playground.xcworkspace
 *~
 .idea/
 
+# Environment variables (local IP, secrets)
+.env
+.env.local
+*.env
+
 # Local dev docs (not part of the app)
 ARCHITECTURE.md

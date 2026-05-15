@@ -222,17 +222,30 @@ struct PerfumeDetailView: View {
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(viewModel.similarPerfumes) { similar in
+                    ForEach(viewModel.displayedSimilar) { similar in
+                        let isLast = similar.id == viewModel.displayedSimilar.last?.id
                         NavigationLink {
                             PerfumeDetailView(perfumeId: similar.id)
                         } label: {
                             SimilarCard(perfume: similar)
                         }
                         .buttonStyle(.plain)
+                        .transition(
+                            .asymmetric(
+                                insertion: .scale(scale: 0.85).combined(with: .opacity),
+                                removal: .opacity
+                            )
+                        )
+                        .onAppear {
+                            guard isLast, viewModel.hasMoreSimilar else { return }
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                            viewModel.loadMoreSimilar()
+                        }
                     }
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 10)
+                .animation(.spring(response: 0.35, dampingFraction: 0.75), value: viewModel.displayedSimilarCount)
             }
         }
     }

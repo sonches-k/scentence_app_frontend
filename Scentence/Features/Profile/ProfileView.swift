@@ -136,10 +136,22 @@ struct ProfileView: View {
                 .padding(.vertical, 12)
                 .glassInputField(cornerRadius: 14)
                 .padding(.horizontal, 48)
+                .onChange(of: viewModel.newName) {
+                    viewModel.errorMessage = nil
+                    if viewModel.newName.count > 20 {
+                        viewModel.newName = String(viewModel.newName.prefix(20))
+                    }
+                }
+
+            if let error = viewModel.errorMessage {
+                ErrorLabel(text: error)
+                    .padding(.horizontal, 48)
+            }
 
             HStack(spacing: 12) {
                 Button {
                     viewModel.isEditingName = false
+                    viewModel.errorMessage = nil
                 } label: {
                     Text("Отмена")
                         .font(AppFont.caption(14))

@@ -64,7 +64,7 @@ final class FiltersViewModelTests: XCTestCase {
         XCTAssertTrue(vm.availableCategories.contains("Аква"))
     }
 
-    func test_load_filters_error_does_not_crash() async {
+    func test_load_filters_error_sets_filter_error() async {
         let mock = MockAPIService()
         mock.getAllFiltersResult = .failure(MockAPIService.MockError.testError)
         mock.suggestBrandsResult = .failure(MockAPIService.MockError.testError)
@@ -75,6 +75,25 @@ final class FiltersViewModelTests: XCTestCase {
 
         XCTAssertTrue(vm.availableGenders.isEmpty)
         XCTAssertFalse(vm.isLoading)
+        XCTAssertNotNil(vm.filterError)
+    }
+
+    func test_load_filters_success_clears_filter_error() async {
+        let mock = MockAPIService()
+        mock.getAllFiltersResult = .failure(MockAPIService.MockError.testError)
+        mock.suggestBrandsResult = .failure(MockAPIService.MockError.testError)
+        mock.suggestNotesResult = .failure(MockAPIService.MockError.testError)
+
+        let vm = FiltersViewModel(api: mock)
+        await vm.loadFilters(token: nil)
+        XCTAssertNotNil(vm.filterError)
+
+        mock.getAllFiltersResult = .success(makeFiltersResponse())
+        mock.suggestBrandsResult = .success([])
+        mock.suggestNotesResult = .success([])
+        await vm.loadFilters(token: nil)
+
+        XCTAssertNil(vm.filterError)
     }
 
     // MARK: - activeCount
@@ -122,7 +141,7 @@ final class FiltersViewModelTests: XCTestCase {
         XCTAssertTrue(chips.contains("Dior"))
         XCTAssertTrue(chips.contains("Chanel"))
         XCTAssertFalse(chips.contains("Guerlain"))  // Бренды ограничены двумя
-        XCTAssertTrue(chips.contains("2010–2023"))
+        XCTAssertTrue(chips.contains("2010–2023 г."))
     }
 
     // MARK: - buildFilters
@@ -171,6 +190,45 @@ final class FiltersViewModelTests: XCTestCase {
         vm.yearFrom = "abc"
 
         XCTAssertNil(vm.buildFilters())
+    }
+
+    func test_build_filters_swaps_year_when_from_greater_than_to() {
+        let vm = FiltersViewModel()
+        vm.yearFrom = "2020"
+        vm.yearTo = "2010"
+
+        let filters = vm.buildFilters()
+
+        XCTAssertEqual(filters?.yearFrom, 2010)
+        XCTAssertEqual(filters?.yearTo, 2020)
+        XCTAssertEqual(vm.yearFrom, "2010")
+        XCTAssertEqual(vm.yearTo, "2020")
+    }
+
+    // MARK: - sanitizeYear
+
+    func test_sanitize_year_filters_non_digits() {
+        let vm = FiltersViewModel()
+        XCTAssertEqual(vm.sanitizeYear("20ab"), "20")
+        XCTAssertEqual(vm.sanitizeYear("abc"), "")
+    }
+
+    func test_sanitize_year_limits_to_four_digits() {
+        let vm = FiltersViewModel()
+        XCTAssertEqual(vm.sanitizeYear("20251999"), "2025")
+    }
+
+    func test_sanitize_year_clamps_to_valid_range() {
+        let vm = FiltersViewModel()
+        XCTAssertEqual(vm.sanitizeYear("0050"), "1900")
+        XCTAssertEqual(vm.sanitizeYear("9999"), "2030")
+        XCTAssertEqual(vm.sanitizeYear("2000"), "2000")
+    }
+
+    func test_sanitize_year_incomplete_input_not_clamped() {
+        let vm = FiltersViewModel()
+        XCTAssertEqual(vm.sanitizeYear("199"), "199")
+        XCTAssertEqual(vm.sanitizeYear("2"), "2")
     }
 
     // MARK: - reset

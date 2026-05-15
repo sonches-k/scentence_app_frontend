@@ -4,6 +4,7 @@ struct AuthView: View {
     @EnvironmentObject var authState: AuthState
     @StateObject private var viewModel = AuthViewModel()
     @State private var logoVisible = false
+    @FocusState private var isEmailFocused: Bool
 
     var body: some View {
         ZStack {
@@ -32,6 +33,7 @@ struct AuthView: View {
                     .animation(.easeInOut(duration: 0.3), value: viewModel.step)
                 }
             }
+            .scrollDismissesKeyboard(.interactively)
         }
         .onAppear {
             withAnimation(.easeOut(duration: 1.1)) {
@@ -86,12 +88,18 @@ struct AuthView: View {
                 text: $viewModel.email,
                 keyboardType: .emailAddress
             )
+            .focused($isEmailFocused)
+            .onSubmit {
+                isEmailFocused = false
+                Task { await viewModel.requestCode() }
+            }
 
             if let error = viewModel.errorMessage {
                 ErrorLabel(text: error)
             }
 
             Button("Получить код") {
+                isEmailFocused = false
                 Task { await viewModel.requestCode() }
             }
             .buttonStyle(PrimaryButtonStyle())
@@ -133,6 +141,7 @@ struct AuthView: View {
             }
 
             Button("Войти") {
+                hideKeyboard()
                 Task { await viewModel.verifyCode(authState: authState) }
             }
             .buttonStyle(PrimaryButtonStyle())

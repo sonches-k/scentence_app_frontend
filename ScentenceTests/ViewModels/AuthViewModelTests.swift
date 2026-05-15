@@ -35,6 +35,35 @@ final class AuthViewModelTests: XCTestCase {
         XCTAssertEqual(vm.step, .email)
     }
 
+    func test_request_code_invalid_email_format_shows_error_without_api_call() async {
+        let invalidEmails = ["notanemail", "test@", "@domain.com", "test@domain", "test@.com"]
+        for email in invalidEmails {
+            let mock = MockAPIService()
+            let vm = AuthViewModel(api: mock)
+            vm.email = email
+
+            await vm.requestCode()
+
+            XCTAssertNotNil(vm.errorMessage, "Ожидалась ошибка для email: \(email)")
+            XCTAssertEqual(vm.step, .email)
+            XCTAssertEqual(mock.requestCodeCallCount, 0, "API не должен вызываться для: \(email)")
+        }
+    }
+
+    func test_request_code_valid_email_formats_pass_validation() async {
+        let validEmails = ["user@example.com", "user+tag@domain.org", "a@b.io"]
+        for email in validEmails {
+            let mock = MockAPIService()
+            mock.requestCodeResult = .success(MessageResponse(message: "sent"))
+            let vm = AuthViewModel(api: mock)
+            vm.email = email
+
+            await vm.requestCode()
+
+            XCTAssertEqual(vm.step, .code, "Валидный email не прошёл: \(email)")
+        }
+    }
+
     func test_request_code_success_advances_to_code_step() async {
         let mock = MockAPIService()
         mock.requestCodeResult = .success(MessageResponse(message: "sent"))

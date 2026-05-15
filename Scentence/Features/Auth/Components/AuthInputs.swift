@@ -49,6 +49,7 @@ struct OTPField: View {
                     if new.count > old.count {
                         UIImpactFeedbackGenerator(style: .light).impactOccurred()
                     }
+                    if new.count == 6 { isFocused = false }
                 }
 
             HStack(spacing: 12) {

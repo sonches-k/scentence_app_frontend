@@ -27,6 +27,7 @@ final class MockAPIService: APIServiceProtocol {
 
     // MARK: - Счётчики вызовов
 
+    var requestCodeCallCount = 0
     var searchCallCount = 0
     var getPerfumeCallCount = 0
     var getFavoritesCallCount = 0
@@ -53,7 +54,8 @@ final class MockAPIService: APIServiceProtocol {
     // MARK: - APIServiceProtocol
 
     func requestCode(email: String) async throws -> MessageResponse {
-        try requestCodeResult.get()
+        requestCodeCallCount += 1
+        return try requestCodeResult.get()
     }
 
     func verifyCode(email: String, code: String) async throws -> TokenResponse {

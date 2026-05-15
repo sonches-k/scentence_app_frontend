@@ -1,4 +1,5 @@
 import Foundation
+import OSLog
 import Security
 
 final class KeychainService {
@@ -6,6 +7,7 @@ final class KeychainService {
 
     private let accessTokenKey  = "com.scentence.authToken"
     private let refreshTokenKey = "com.scentence.refreshToken"
+    private let logger = Logger(subsystem: "com.scentence", category: "Keychain")
 
     private init() {}
 
@@ -48,7 +50,10 @@ final class KeychainService {
             kSecAttrAccount as String: key,
             kSecValueData as String:   data,
         ]
-        SecItemAdd(query as CFDictionary, nil)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status != errSecSuccess {
+            logger.error("Keychain save failed for key '\(key, privacy: .public)': OSStatus \(status)")
+        }
     }
 
     private func load(forKey key: String) -> String? {

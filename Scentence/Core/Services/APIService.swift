@@ -56,6 +56,8 @@ final class APIService: APIServiceProtocol {
         return URLSession(configuration: config)
     }()
 
+    private let refreshCoordinator = TokenRefreshCoordinator()
+
     private init() {}
 
     // MARK: - Generic request
@@ -243,22 +245,24 @@ final class APIService: APIServiceProtocol {
     }
 
     private func performTokenRefresh() async throws -> TokenResponse {
-        guard let storedRefresh = KeychainService.shared.getRefreshToken() else {
-            NotificationCenter.default.post(name: .forceSignOut, object: nil)
-            throw NetworkError.unauthorized
-        }
-        do {
-            let tokens: TokenResponse = try await request(
-                "/auth/refresh", method: "POST",
-                body: RefreshRequest(refreshToken: storedRefresh)
-            )
-            KeychainService.shared.saveToken(tokens.accessToken)
-            KeychainService.shared.saveRefreshToken(tokens.refreshToken)
-            NotificationCenter.default.post(name: .tokenRefreshed, object: tokens.accessToken)
-            return tokens
-        } catch {
-            NotificationCenter.default.post(name: .forceSignOut, object: nil)
-            throw error
+        try await refreshCoordinator.refresh {
+            guard let storedRefresh = KeychainService.shared.getRefreshToken() else {
+                NotificationCenter.default.post(name: .forceSignOut, object: nil)
+                throw NetworkError.unauthorized
+            }
+            do {
+                let tokens: TokenResponse = try await self.request(
+                    "/auth/refresh", method: "POST",
+                    body: RefreshRequest(refreshToken: storedRefresh)
+                )
+                KeychainService.shared.saveToken(tokens.accessToken)
+                KeychainService.shared.saveRefreshToken(tokens.refreshToken)
+                NotificationCenter.default.post(name: .tokenRefreshed, object: tokens.accessToken)
+                return tokens
+            } catch {
+                NotificationCenter.default.post(name: .forceSignOut, object: nil)
+                throw error
+            }
         }
     }
 }
@@ -270,6 +274,28 @@ extension Notification.Name {
     static let tokenRefreshed = Notification.Name("com.scentence.tokenRefreshed")
     /// APIService постит когда refresh истёк/невалиден — нужно разлогинить.
     static let forceSignOut   = Notification.Name("com.scentence.forceSignOut")
+}
+
+// MARK: - TokenRefreshCoordinator
+
+private actor TokenRefreshCoordinator {
+    private var refreshTask: Task<TokenResponse, Error>?
+
+    func refresh(using operation: @escaping () async throws -> TokenResponse) async throws -> TokenResponse {
+        if let existing = refreshTask {
+            return try await existing.value
+        }
+        let task = Task<TokenResponse, Error> { try await operation() }
+        refreshTask = task
+        do {
+            let result = try await task.value
+            refreshTask = nil
+            return result
+        } catch {
+            refreshTask = nil
+            throw error
+        }
+    }
 }
 
 // MARK: - NetworkError
@@ -289,6 +315,7 @@ enum NetworkError: LocalizedError {
             switch c {
             case 404: return "Не найдено"
             case 422: return "Некорректный запрос"
+            case 429: return "Слишком много запросов. Подождите и попробуйте снова."
             case 504: return "Сервер не успел ответить. Попробуйте ещё раз."
             case 500...599: return "Ошибка сервера. Попробуйте позже."
             default:  return "Ошибка сервера: \(c)"

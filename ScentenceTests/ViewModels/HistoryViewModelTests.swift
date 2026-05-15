@@ -22,7 +22,7 @@ final class HistoryViewModelTests: XCTestCase {
         XCTAssertEqual(mock.getHistoryCallCount, 1)
     }
 
-    func test_load_error_leaves_empty_array() async {
+    func test_load_error_sets_error_message() async {
         let mock = MockAPIService()
         mock.getHistoryResult = .failure(MockAPIService.MockError.testError)
 
@@ -31,6 +31,22 @@ final class HistoryViewModelTests: XCTestCase {
 
         XCTAssertTrue(vm.history.isEmpty)
         XCTAssertFalse(vm.isLoading)
+        XCTAssertNotNil(vm.errorMessage)
+    }
+
+    func test_load_success_clears_error_message() async {
+        let mock = MockAPIService()
+        mock.getHistoryResult = .failure(MockAPIService.MockError.testError)
+
+        let vm = HistoryViewModel(api: mock)
+        await vm.load(token: "token")
+        XCTAssertNotNil(vm.errorMessage)
+
+        mock.getHistoryResult = .success([makeEntry(id: 1)])
+        await vm.load(token: "token")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(vm.history.count, 1)
     }
 
     func test_load_preserves_server_order() async {

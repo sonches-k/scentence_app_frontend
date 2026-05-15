@@ -39,7 +39,7 @@ final class FavoritesViewModelTests: XCTestCase {
         XCTAssertEqual(vm.favorites.map(\.id), [3, 2, 1])
     }
 
-    func test_load_error_leaves_empty_array() async {
+    func test_load_error_sets_error_message() async {
         let mock = MockAPIService()
         mock.getFavoritesResult = .failure(MockAPIService.MockError.testError)
 
@@ -48,6 +48,22 @@ final class FavoritesViewModelTests: XCTestCase {
 
         XCTAssertTrue(vm.favorites.isEmpty)
         XCTAssertFalse(vm.isLoading)
+        XCTAssertNotNil(vm.errorMessage)
+    }
+
+    func test_load_success_clears_error_message() async {
+        let mock = MockAPIService()
+        mock.getFavoritesResult = .failure(MockAPIService.MockError.testError)
+
+        let vm = FavoritesViewModel(api: mock)
+        await vm.load(token: "token")
+        XCTAssertNotNil(vm.errorMessage)
+
+        mock.getFavoritesResult = .success([makeFavorite(id: 1)])
+        await vm.load(token: "token")
+
+        XCTAssertNil(vm.errorMessage)
+        XCTAssertEqual(vm.favorites.count, 1)
     }
 
     func test_load_sets_loading_flag() async {

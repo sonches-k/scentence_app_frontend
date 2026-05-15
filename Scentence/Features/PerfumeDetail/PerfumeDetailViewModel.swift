@@ -4,8 +4,18 @@ import Foundation
 final class PerfumeDetailViewModel: ObservableObject {
     @Published var perfume: Perfume?
     @Published var similarPerfumes: [PerfumeWithRelevance] = []
+    @Published var displayedSimilarCount: Int = 5
     @Published var isLoading: Bool = false
     @Published var isLoadingSimilar: Bool = false
+
+    var displayedSimilar: [PerfumeWithRelevance] {
+        Array(similarPerfumes.prefix(displayedSimilarCount))
+    }
+
+    var hasMoreSimilar: Bool {
+        displayedSimilarCount < similarPerfumes.count
+    }
+
     @Published var isFavorite: Bool = false
     @Published var isFavoriteLoading: Bool = false
     @Published var errorMessage: String?
@@ -23,7 +33,7 @@ final class PerfumeDetailViewModel: ObservableObject {
 
         do {
             async let perfumeResult = api.getPerfume(id: perfumeId, token: token)
-            async let similarResult = api.getSimilar(perfumeId: perfumeId, limit: 5, token: token)
+            async let similarResult = api.getSimilar(perfumeId: perfumeId, limit: 20, token: token)
 
             perfume = try await perfumeResult
 
@@ -43,6 +53,11 @@ final class PerfumeDetailViewModel: ObservableObject {
         if let favorites = try? await api.getFavorites(token: token) {
             isFavorite = favorites.contains { $0.id == perfumeId }
         }
+    }
+
+    func loadMoreSimilar() {
+        guard hasMoreSimilar else { return }
+        displayedSimilarCount = min(displayedSimilarCount + 5, similarPerfumes.count)
     }
 
     func toggleFavorite(perfumeId: Int, token: String) async {

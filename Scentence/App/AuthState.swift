@@ -7,27 +7,28 @@ final class AuthState: ObservableObject {
     private(set) var token: String?
     private(set) var refreshToken: String?
 
+    private var observers: [NSObjectProtocol] = []
+
     init() {
         token        = KeychainService.shared.getToken()
         refreshToken = KeychainService.shared.getRefreshToken()
         isAuthenticated = token != nil
 
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleForceSignOut),
-            name: .forceSignOut,
-            object: nil
+        observers.append(
+            NotificationCenter.default.addObserver(forName: .forceSignOut, object: nil, queue: .main) { [weak self] _ in
+                self?.signOut()
+            }
         )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(handleTokenRefreshed(_:)),
-            name: .tokenRefreshed,
-            object: nil
+        observers.append(
+            NotificationCenter.default.addObserver(forName: .tokenRefreshed, object: nil, queue: .main) { [weak self] notification in
+                guard let newToken = notification.object as? String else { return }
+                self?.token = newToken
+            }
         )
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self)
+        observers.forEach { NotificationCenter.default.removeObserver($0) }
     }
 
     func signIn(token: String, refreshToken: String, user: User? = nil) {
@@ -49,16 +50,5 @@ final class AuthState: ObservableObject {
 
     func updateUser(_ user: User) {
         currentUser = user
-    }
-
-    @objc private func handleForceSignOut() {
-        DispatchQueue.main.async { self.signOut() }
-    }
-
-    @objc private func handleTokenRefreshed(_ notification: Notification) {
-        guard let newToken = notification.object as? String else { return }
-        DispatchQueue.main.async {
-            self.token = newToken
-        }
     }
 }

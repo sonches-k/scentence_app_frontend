@@ -59,19 +59,20 @@ struct RemoteImage: View {
 
     // MARK: - Load
 
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.default
+        config.timeoutIntervalForRequest = 30
+        return URLSession(configuration: config)
+    }()
+
     private func loadImage() async {
         isLoading = true
         isFailed = false
         image = nil
 
         do {
-            var request = URLRequest(url: url)
-            request.timeoutInterval = 30
-            let config = URLSessionConfiguration.default
-            config.timeoutIntervalForRequest = 30
-            let session = URLSession(configuration: config)
-
-            let (data, response) = try await session.data(for: request)
+            let request = URLRequest(url: url)
+            let (data, response) = try await Self.session.data(for: request)
 
             guard let httpResponse = response as? HTTPURLResponse,
                   (200...299).contains(httpResponse.statusCode),

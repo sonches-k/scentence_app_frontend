@@ -4,6 +4,7 @@ import Foundation
 final class FavoritesViewModel: ObservableObject {
     @Published var favorites: [FavoritePerfume] = []
     @Published var isLoading = false
+    @Published var errorMessage: String?
 
     private let api: APIServiceProtocol
 
@@ -13,8 +14,13 @@ final class FavoritesViewModel: ObservableObject {
 
     func load(token: String) async {
         isLoading = true
+        errorMessage = nil
         defer { isLoading = false }
-        favorites = ((try? await api.getFavorites(token: token)) ?? []).reversed()
+        do {
+            favorites = try await api.getFavorites(token: token).reversed()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func removeFavorite(perfumeId: Int, token: String) async {

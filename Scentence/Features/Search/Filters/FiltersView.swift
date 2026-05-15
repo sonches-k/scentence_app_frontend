@@ -14,6 +14,24 @@ struct FiltersView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
+                        if let error = viewModel.filterError {
+                            HStack(spacing: 12) {
+                                Image(systemName: "exclamationmark.triangle")
+                                    .foregroundColor(AppColor.textMuted)
+                                Text(error)
+                                    .font(AppFont.caption(13))
+                                    .foregroundColor(AppColor.textMuted)
+                                Spacer()
+                                Button("Повторить") {
+                                    Task { await viewModel.retryLoadFilters() }
+                                }
+                                .font(AppFont.caption(13))
+                                .foregroundColor(AppColor.accent)
+                            }
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                        }
+
                         filterSection("Пол", options: viewModel.availableGenders, selected: $viewModel.selectedGenders)
                         AccentDivider().padding(.horizontal)
 
@@ -63,31 +81,31 @@ struct FiltersView: View {
 
                         yearSection
                     }
-                    .padding(.bottom, 120)
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .simultaneousGesture(TapGesture().onEnded { hideKeyboard() })
+                .safeAreaInset(edge: .bottom) {
+                    VStack(spacing: 0) {
+                        LinearGradient(
+                            colors: [.clear, AppColor.background],
+                            startPoint: .top, endPoint: .bottom
+                        )
+                        .frame(height: 56)
+                        .allowsHitTesting(false)
 
-                VStack(spacing: 0) {
-                    Spacer()
+                        HStack(spacing: 12) {
+                            Button("Сбросить") { viewModel.reset() }
+                                .buttonStyle(OutlineButtonStyle())
 
-                    LinearGradient(
-                        colors: [.clear, AppColor.background],
-                        startPoint: .top, endPoint: .bottom
-                    )
-                    .frame(height: 56)
-                    .allowsHitTesting(false)
-
-                    HStack(spacing: 12) {
-                        Button("Сбросить") { viewModel.reset() }
-                            .buttonStyle(OutlineButtonStyle())
-
-                        Button("Применить") { dismiss() }
-                            .buttonStyle(PrimaryButtonStyle())
+                            Button("Применить") { dismiss() }
+                                .buttonStyle(PrimaryButtonStyle())
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 12)
+                        .padding(.bottom, 32)
+                        .frame(maxWidth: .infinity)
+                        .background(AppColor.background)
                     }
-                    .padding(.horizontal, 24)
-                    .padding(.top, 12)
-                    .padding(.bottom, 32)
-                    .frame(maxWidth: .infinity)
-                    .background(AppColor.background)
                 }
             }
             .navigationTitle("Фильтры")
@@ -333,6 +351,10 @@ struct FiltersView: View {
                         .keyboardType(.numberPad)
                         .padding(12)
                         .glassInputField(cornerRadius: 10)
+                        .onChange(of: viewModel.yearFrom) { _, val in
+                            let sanitized = viewModel.sanitizeYear(val)
+                            if sanitized != val { viewModel.yearFrom = sanitized }
+                        }
                 }
                 VStack(alignment: .leading, spacing: 4) {
                     Text("до").font(AppFont.caption(12)).foregroundColor(AppColor.textMuted)
@@ -342,6 +364,10 @@ struct FiltersView: View {
                         .keyboardType(.numberPad)
                         .padding(12)
                         .glassInputField(cornerRadius: 10)
+                        .onChange(of: viewModel.yearTo) { _, val in
+                            let sanitized = viewModel.sanitizeYear(val)
+                            if sanitized != val { viewModel.yearTo = sanitized }
+                        }
                 }
             }
         }

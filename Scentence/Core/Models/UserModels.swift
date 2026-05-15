@@ -80,9 +80,9 @@ struct SearchHistoryEntry: Codable, Identifiable {
         chips += f.categories   ?? []
         chips += (f.brands ?? []).prefix(2)
         chips += (f.notes  ?? []).prefix(2)
-        if let from = f.yearFrom, let to = f.yearTo { chips.append("\(from)–\(to)") }
-        else if let from = f.yearFrom { chips.append("от \(from)") }
-        else if let to   = f.yearTo   { chips.append("до \(to)") }
+        if let from = f.yearFrom, let to = f.yearTo { chips.append("\(from)–\(to) г.") }
+        else if let from = f.yearFrom { chips.append("от \(from) г.") }
+        else if let to   = f.yearTo   { chips.append("до \(to) г.") }
         return chips
     }
 }
